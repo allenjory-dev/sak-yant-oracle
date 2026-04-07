@@ -157,6 +157,13 @@ const TRANSLATIONS = {
     journey_summary: "Journey Summary",
     stat_received: "Received", stat_getting_next: "Getting Next", stat_someday: "Someday", stat_total: "Total Planned",
     language: "Language",
+    // Body Preview
+    preview_on_body: "Preview on Body",
+    try_it_on: "Try It On",
+    front_view: "Front",
+    back_view: "Back",
+    tap_to_place: "Tap a body area to preview placement",
+    preview_placement: "Preview Placement",
   },
   th: {
     // Intro
@@ -2318,7 +2325,203 @@ function YantCard({ yantKey, yant, selected, onSelect, onToggle, rank }) {
   );
 }
 
-function Modal({ yantKey, yant, inCollage, onToggle, onClose, currentStatus, onSetStatus }) {
+function BodyPreview({ yant, onClose }) {
+  const [view, setView] = useState("back");
+  const [activeZone, setActiveZone] = useState(null);
+  
+  const sizeMap = { small: 40, medium: 60, large: 80 };
+  const yantSize = sizeMap[yant.size] || 60;
+  
+  // Back view zones
+  const backZones = {
+    neck_spine: { x: 150, y: 50, w: 40, h: 40 },
+    upper_back: { x: 110, y: 120, w: 80, h: 70 },
+    center_back: { x: 110, y: 210, w: 80, h: 70 },
+    shoulder_left: { x: 70, y: 110, w: 40, h: 40 },
+    shoulder_right: { x: 190, y: 110, w: 40, h: 40 },
+  };
+  
+  // Front view zones
+  const frontZones = {
+    chest: { x: 110, y: 140, w: 80, h: 70 },
+    upper_arm_left: { x: 60, y: 160, w: 35, h: 60 },
+    upper_arm_right: { x: 205, y: 160, w: 35, h: 60 },
+    forearm_left: { x: 50, y: 235, w: 30, h: 60 },
+    forearm_right: { x: 220, y: 235, w: 30, h: 60 },
+    thigh_left: { x: 90, y: 340, w: 40, h: 70 },
+    thigh_right: { x: 170, y: 340, w: 40, h: 70 },
+    calf_left: { x: 100, y: 425, w: 35, h: 60 },
+    calf_right: { x: 165, y: 425, w: 35, h: 60 },
+  };
+  
+  const zones = view === "back" ? backZones : frontZones;
+  
+  // SVG for back view
+  const BackSVG = () => (
+    <svg viewBox="0 0 300 500" style={{ width: "100%", maxWidth: 300 }}>
+      {/* Head */}
+      <circle cx="150" cy="40" r="22" fill="none" stroke={G} strokeWidth="1.5" opacity="0.6" />
+      {/* Neck */}
+      <line x1="150" y1="62" x2="150" y2="90" stroke={G} strokeWidth="1.5" opacity="0.6" />
+      {/* Shoulders */}
+      <path d="M 90 95 Q 150 85 210 95" fill="none" stroke={G} strokeWidth="1.5" opacity="0.6" />
+      {/* Spine line */}
+      <line x1="150" y1="90" x2="150" y2="310" stroke={G} strokeWidth="1" opacity="0.4" strokeDasharray="3,3" />
+      {/* Upper back/shoulders */}
+      <path d="M 110 100 Q 150 95 190 100 L 195 170 Q 150 175 105 170 Z" fill="none" stroke={G} strokeWidth="1.5" opacity="0.6" />
+      {/* Torso */}
+      <path d="M 105 170 L 95 280 Q 95 310 105 330 L 150 340 L 195 330 Q 205 310 205 280 L 195 170 Z" fill="none" stroke={G} strokeWidth="1.5" opacity="0.6" />
+      {/* Arms */}
+      <path d="M 105 130 L 50 160 Q 35 180 40 240" fill="none" stroke={G} strokeWidth="1.5" opacity="0.6" />
+      <path d="M 195 130 L 250 160 Q 265 180 260 240" fill="none" stroke={G} strokeWidth="1.5" opacity="0.6" />
+      {/* Legs */}
+      <path d="M 120 330 L 115 450 Q 115 470 125 480" fill="none" stroke={G} strokeWidth="1.5" opacity="0.6" />
+      <path d="M 180 330 L 185 450 Q 185 470 175 480" fill="none" stroke={G} strokeWidth="1.5" opacity="0.6" />
+      
+      {/* Interactive zones */}
+      {Object.entries(zones).map(([id, zone]) => (
+        <g key={id}>
+          <rect
+            x={zone.x} y={zone.y} width={zone.w} height={zone.h}
+            fill="none"
+            stroke={activeZone === id ? G : "transparent"}
+            strokeWidth="1.5"
+            strokeDasharray={activeZone === id ? "4,4" : "none"}
+            style={{ cursor: "pointer" }}
+            onMouseEnter={() => setActiveZone(id)}
+            onMouseLeave={() => {}}
+            onClick={() => setActiveZone(id)}
+            opacity={activeZone === id ? 0.7 : 0}
+          />
+          {activeZone === id && (
+            <rect
+              x={zone.x} y={zone.y} width={zone.w} height={zone.h}
+              fill={G} opacity="0.08" pointerEvents="none"
+            />
+          )}
+        </g>
+      ))}
+    </svg>
+  );
+  
+  // SVG for front view
+  const FrontSVG = () => (
+    <svg viewBox="0 0 300 500" style={{ width: "100%", maxWidth: 300 }}>
+      {/* Head */}
+      <circle cx="150" cy="40" r="22" fill="none" stroke={G} strokeWidth="1.5" opacity="0.6" />
+      {/* Neck */}
+      <line x1="150" y1="62" x2="150" y2="90" stroke={G} strokeWidth="1.5" opacity="0.6" />
+      {/* Shoulders */}
+      <path d="M 90 95 Q 150 85 210 95" fill="none" stroke={G} strokeWidth="1.5" opacity="0.6" />
+      {/* Chest/torso */}
+      <path d="M 100 100 L 90 220 Q 90 250 100 280 L 150 290 L 200 280 Q 210 250 210 220 L 200 100 Z" fill="none" stroke={G} strokeWidth="1.5" opacity="0.6" />
+      {/* Chest center line */}
+      <line x1="150" y1="100" x2="150" y2="220" stroke={G} strokeWidth="1" opacity="0.4" strokeDasharray="3,3" />
+      {/* Upper arms */}
+      <path d="M 100 115 L 55 160 Q 40 185 38 240" fill="none" stroke={G} strokeWidth="1.5" opacity="0.6" />
+      <path d="M 200 115 L 245 160 Q 260 185 262 240" fill="none" stroke={G} strokeWidth="1.5" opacity="0.6" />
+      {/* Forearms */}
+      <path d="M 50 240 L 35 320 Q 30 350 40 370" fill="none" stroke={G} strokeWidth="1.5" opacity="0.6" />
+      <path d="M 250 240 L 265 320 Q 270 350 260 370" fill="none" stroke={G} strokeWidth="1.5" opacity="0.6" />
+      {/* Hips/thighs */}
+      <path d="M 110 290 L 110 370 Q 110 390 120 400" fill="none" stroke={G} strokeWidth="1.5" opacity="0.6" />
+      <path d="M 190 290 L 190 370 Q 190 390 180 400" fill="none" stroke={G} strokeWidth="1.5" opacity="0.6" />
+      {/* Calves */}
+      <path d="M 115 400 L 115 480 Q 115 495 125 500" fill="none" stroke={G} strokeWidth="1.5" opacity="0.6" />
+      <path d="M 185 400 L 185 480 Q 185 495 175 500" fill="none" stroke={G} strokeWidth="1.5" opacity="0.6" />
+      
+      {/* Interactive zones */}
+      {Object.entries(zones).map(([id, zone]) => (
+        <g key={id}>
+          <rect
+            x={zone.x} y={zone.y} width={zone.w} height={zone.h}
+            fill="none"
+            stroke={activeZone === id ? G : "transparent"}
+            strokeWidth="1.5"
+            strokeDasharray={activeZone === id ? "4,4" : "none"}
+            style={{ cursor: "pointer" }}
+            onMouseEnter={() => setActiveZone(id)}
+            onMouseLeave={() => {}}
+            onClick={() => setActiveZone(id)}
+            opacity={activeZone === id ? 0.7 : 0}
+          />
+          {activeZone === id && (
+            <rect
+              x={zone.x} y={zone.y} width={zone.w} height={zone.h}
+              fill={G} opacity="0.08" pointerEvents="none"
+            />
+          )}
+        </g>
+      ))}
+    </svg>
+  );
+  
+  const zoneLabels = {
+    neck_spine: t("area_neck_spine"),
+    upper_back: t("area_upper_back"),
+    center_back: t("area_center_back"),
+    shoulder_left: t("area_shoulder") + " (L)",
+    shoulder_right: t("area_shoulder") + " (R)",
+    chest: t("area_chest"),
+    upper_arm_left: t("area_upper_arm") + " (L)",
+    upper_arm_right: t("area_upper_arm") + " (R)",
+    forearm_left: t("area_forearm") + " (L)",
+    forearm_right: t("area_forearm") + " (R)",
+    thigh_left: t("area_thigh") + " (L)",
+    thigh_right: t("area_thigh") + " (R)",
+    calf_left: t("area_calf") + " (L)",
+    calf_right: t("area_calf") + " (R)",
+  };
+  
+  return (
+    <div onClick={onClose} style={{ position:"fixed", inset:0, zIndex:300, background:"rgba(8,6,3,0.96)", display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column", padding:20 }}>
+      <div onClick={e=>e.stopPropagation()} style={{ maxWidth:420, width:"100%", textAlign:"center" }}>
+        <button onClick={onClose} style={{ position:"absolute", top:20, right:20, background:"none", border:"none", color:DIM, fontSize:18, cursor:"pointer", zIndex:301 }}>✕</button>
+        
+        <div style={{ color:G, fontSize:13, letterSpacing:3, textTransform:"uppercase", marginBottom:20, fontWeight:"normal" }}>{t("preview_placement")}</div>
+        
+        <div style={{ color:WARM, fontSize:18, marginBottom:16, fontWeight:"normal" }}>{yant.name}</div>
+        
+        {/* Front/Back Toggle */}
+        <div style={{ display:"flex", gap:8, marginBottom:24, justifyContent:"center" }}>
+          {[["back", t("back_view")], ["front", t("front_view")]].map(([v, label]) => (
+            <button key={v} onClick={() => { setView(v); setActiveZone(null); }} style={{
+              flex: 1, padding:"10px 16px", fontSize:11, letterSpacing:2, textTransform:"uppercase",
+              fontFamily:"Georgia,serif", cursor:"pointer",
+              background: view === v ? G : "transparent",
+              border: `1px solid ${view === v ? G : SUB}`,
+              color: view === v ? DARK : DIM,
+              transition:"all 0.2s ease",
+            }}>
+              {label}
+            </button>
+          ))}
+        </div>
+        
+        {/* Body SVG */}
+        <div style={{ background:"rgba(201,168,76,0.03)", border:`1px solid ${SUB}`, padding:"24px 20px", marginBottom:20, borderRadius:"2px" }}>
+          {view === "back" ? <BackSVG /> : <FrontSVG />}
+        </div>
+        
+        {/* Instructions and zone label */}
+        <div style={{ color:DIM, fontSize:11, letterSpacing:1, marginBottom:12, minHeight:"22px" }}>
+          {activeZone ? zoneLabels[activeZone] : t("tap_to_place")}
+        </div>
+        
+        {/* Yant preview at zone */}
+        {activeZone && (
+          <div style={{ background:"rgba(201,168,76,0.04)", border:`1px solid rgba(201,168,76,0.15)`, padding:"16px", marginBottom:20 }}>
+            <div style={{ fontSize:9, letterSpacing:2, color:G, textTransform:"uppercase", marginBottom:8 }}>Placement Preview</div>
+            <div style={{ width:yantSize, height:yantSize, color:G, margin:"0 auto", opacity:0.85, filter:"drop-shadow(0 0 8px rgba(201,168,76,0.3))" }} dangerouslySetInnerHTML={{ __html: yant.svg }} />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
+function Modal({ yantKey, yant, inCollage, onToggle, onClose, currentStatus, onSetStatus, setBodyPreview }) {
   return (
     <div onClick={onClose} style={{ position:"fixed", inset:0, zIndex:200, background:"rgba(8,6,3,0.94)", display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
       <div onClick={e=>e.stopPropagation()} style={{
@@ -2365,6 +2568,17 @@ function Modal({ yantKey, yant, inCollage, onToggle, onClose, currentStatus, onS
           onMouseEnter={e=>{ e.currentTarget.style.borderColor=G; e.currentTarget.style.color=G; }}
           onMouseLeave={e=>{ e.currentTarget.style.borderColor=SUB; e.currentTarget.style.color=DIM; }}
         >See Real Tattoo Photos →</a>
+
+        <button onClick={() => { setBodyPreview(yantKey); }} style={{
+          display:"block", width:"100%", background:"transparent", border:`1px solid ${SUB}`,
+          color:DIM, padding:"12px", fontSize:10, letterSpacing:3,
+          textTransform:"uppercase", cursor:"pointer", fontFamily:"Georgia,serif",
+          textAlign:"center", textDecoration:"none", marginBottom:12,
+          transition:"all 0.18s ease",
+        }}
+          onMouseEnter={e=>{ e.currentTarget.style.borderColor=G; e.currentTarget.style.color=G; }}
+          onMouseLeave={e=>{ e.currentTarget.style.borderColor=SUB; e.currentTarget.style.color=DIM; }}
+        >{t("preview_on_body")}</button>
 
         {/* Journey Status */}
         <div style={{ marginBottom:12 }}>
@@ -2417,7 +2631,8 @@ export default function App() {
   const [elementProfile, setElementProfile] = useState(null);
   const [offerings, setOfferings] = useState(new Set());
   const [bodyAreas, setBodyAreas] = useState([]);
-  const [discretion, setDiscretion] = useState(null);
+
+  const [bodyPreview, setBodyPreview] = useState(null);  const [discretion, setDiscretion] = useState(null);
   const [pathChoice, setPathChoice] = useState(null);
   const [journey, setJourney] = useState({}); // { yantKey: "have" | "next" | t("someday_word") }
   const [journeyNotes, setJourneyNotes] = useState({}); // { yantKey: "note text" }
@@ -2798,9 +3013,17 @@ export default function App() {
                         <div style={{ fontSize:15, color:WARM, marginBottom:2 }}>{r.yant.name}</div>
                         <div style={{ fontSize:11, color:G, letterSpacing:1, marginBottom:6 }}>{r.yant.thai} · {r.yant.meaning}</div>
                         <div style={{ fontSize:11, color:DIM, lineHeight:1.7 }}>{r.yant.description.slice(0, 160)}...</div>
-                        <div style={{ marginTop:8, display:"flex", gap:6, flexWrap:"wrap" }}>
+                        <div style={{ marginTop:8, display:"flex", gap:6, flexWrap:"wrap", alignItems:"center" }}>
                           <span style={{ fontSize:8, letterSpacing:2, textTransform:"uppercase", color:ELEMENTS[r.yant.element]?.color || DIM }}>{ELEMENTS[r.yant.element]?.symbol} {elName(r.yant.element)}</span>
                           <span style={{ fontSize:8, letterSpacing:1, color:DIM }}>· {r.yant.placement}</span>
+                          <button onClick={(e) => { e.stopPropagation(); setBodyPreview(r.key); }} style={{
+                            marginLeft:"auto", background:"transparent", border:`1px solid ${DIM}`, color:DIM, padding:"4px 10px",
+                            fontSize:8, letterSpacing:1, textTransform:"uppercase", cursor:"pointer", fontFamily:"Georgia,serif",
+                            transition:"all 0.2s ease",
+                          }}
+                            onMouseEnter={e=>{ e.currentTarget.style.borderColor=G; e.currentTarget.style.color=G; }}
+                            onMouseLeave={e=>{ e.currentTarget.style.borderColor=DIM; e.currentTarget.style.color=DIM; }}
+                          >{t("try_it_on")}</button>
                         </div>
                       </div>
                     </div>
@@ -3190,7 +3413,11 @@ export default function App() {
       </div>
 
       {detail && YANTS[detail] && (
-        <Modal yantKey={detail} yant={YANTS[detail]} inCollage={collage.has(detail)} onToggle={toggleCollage} onClose={()=>setDetail(null)} currentStatus={journey[detail]} onSetStatus={setYantStatus} />
+        <Modal yantKey={detail} yant={YANTS[detail]} inCollage={collage.has(detail)} onToggle={toggleCollage} onClose={()=>setDetail(null)} currentStatus={journey[detail]} onSetStatus={setYantStatus} setBodyPreview={setBodyPreview} />
+      )}
+
+      {bodyPreview && YANTS[bodyPreview] && (
+        <BodyPreview yant={YANTS[bodyPreview]} onClose={()=>setBodyPreview(null)} />
       )}
 
       <style>{`
