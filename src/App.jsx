@@ -3183,16 +3183,20 @@ I approach with respect and sincere intent. I would like to learn more about rec
               <div style={{ marginBottom:36 }}>
                 <div style={{ fontSize:10, letterSpacing:4, color:G, textTransform:"uppercase", marginBottom:22 }}>✦ Your Top Yants</div>
                 <div style={{ display:"flex", flexDirection:"column", gap:18 }}>
-                  {ranked.slice(0,3).map((r, i) => (
+                  {ranked.slice(0,3).map((r, i) => {
+                    const isPicked = journey[r.key] === "next";
+                    const anyPicked = Object.values(journey).some(v=>v==="next");
+                    const highlight = isPicked || (!anyPicked && i===0);
+                    return (
                     <div key={r.key} onClick={()=>setDetail(r.key)} style={{
-                      border:`1px solid ${i===0 ? G : SUB}`,
-                      background: i===0 ? "rgba(201,168,76,0.06)" : "transparent",
+                      border:`${isPicked?2:1}px solid ${highlight ? G : SUB}`,
+                      background: highlight ? "rgba(201,168,76,0.08)" : "transparent",
                       padding:"24px 20px", cursor:"pointer",
                       display:"flex", gap:20, alignItems:"center", textAlign:"left",
                       transition:"all 0.2s ease",
                     }}
-                      onMouseEnter={e=>{ e.currentTarget.style.borderColor=G; e.currentTarget.style.background="rgba(201,168,76,0.04)"; }}
-                      onMouseLeave={e=>{ e.currentTarget.style.borderColor=i===0?G:SUB; e.currentTarget.style.background=i===0?"rgba(201,168,76,0.06)":"transparent"; }}
+                      onMouseEnter={e=>{ e.currentTarget.style.borderColor=G; }}
+                      onMouseLeave={e=>{ e.currentTarget.style.borderColor=highlight?G:SUB; }}
                     >
                       <div style={{ flexShrink:0, textAlign:"center" }}>
                         <div style={{ fontSize:9, letterSpacing:2, color:G, marginBottom:6, opacity:0.7 }}>#{i+1}</div>
@@ -3213,10 +3217,17 @@ I approach with respect and sincere intent. I would like to learn more about rec
                             onMouseEnter={e=>{ e.currentTarget.style.borderColor=G; e.currentTarget.style.color=G; }}
                             onMouseLeave={e=>{ e.currentTarget.style.borderColor=DIM; e.currentTarget.style.color=DIM; }}
                           >{t("try_it_on")}</button>
+                          <button onClick={(e) => { e.stopPropagation(); setYantStatus(r.key, "next"); }} style={{
+                            background: isPicked ? G : "transparent",
+                            border:`1px solid ${G}`, color: isPicked ? "#0D0B07" : G, padding:"4px 10px",
+                            fontSize:8, letterSpacing:1, textTransform:"uppercase", cursor:"pointer", fontFamily:"Georgia,serif",
+                            transition:"all 0.2s ease",
+                          }}>{isPicked ? "★ My Choice" : "Pick This One"}</button>
                         </div>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
                 <div style={{ fontSize:9, color:DIM, marginTop:10, letterSpacing:1 }}>Tap any yant to see full details</div>
               </div>
