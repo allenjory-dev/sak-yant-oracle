@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
+import QRCode from 'qrcode';
 
 const TRANSLATIONS = {
   en: {
@@ -164,6 +165,21 @@ const TRANSLATIONS = {
     back_view: "Back",
     tap_to_place: "Tap a body area to preview placement",
     preview_placement: "Preview Placement",
+    // QR Code & New Features
+    qr_generate: "Generate QR Code",
+    qr_scan_text: "Your ajarn can scan this to see your reading",
+    qr_close: "Close",
+    sound_on: "♪ On",
+    sound_off: "♪ Off",
+    gallery_title: "Practitioner Gallery",
+    gallery_subtitle: "Sacred Artistry",
+    gallery_desc: "A curated collection of real Sak Yant work from verified ajarn masters. Coming soon.",
+    gallery_coming_soon: "Coming Soon",
+    gallery_practitioners: "For Practitioners",
+    gallery_practitioners_desc: "Are you a Sak Yant ajarn or monk? Showcase your sacred work to seekers worldwide.",
+    gallery_contact: "Contact: sakyantoracle@gmail.com",
+    gallery_back: "← Back to Home",
+    practitioner_gallery: "Practitioner Gallery",
   },
   th: {
     // Intro
@@ -2639,6 +2655,11 @@ export default function App() {
   const [journeyFilter, setJourneyFilter] = useState("all"); // "all" | "have" | "next" | t("someday_word")
   const [editingNote, setEditingNote] = useState(null); // yantKey being edited
 
+  const [qrData, setQrData] = useState(null);
+  const [soundOn, setSoundOn] = useState(false);
+  const [theme, setTheme] = useState("dark");
+  const audioRef = useRef(null);
+
   useEffect(() => { setTimeout(()=>setLoaded(true),80); },[]);
 
   // Load persisted state
@@ -2710,7 +2731,125 @@ export default function App() {
     }
   };
 
-  const reset = () => { setPhase("intro"); setCurrentQ(0); setAnswers([]); setSelected(null); setRanked([]); setCollage(new Set()); setFilter("all"); setDetail(null); setTab("recommended"); setElementProfile(null); setOfferings(new Set()); setBodyAreas([]); setDiscretion(null); setPathChoice(null); setJourneyFilter("all"); setEditingNote(null); };
+  const c = (dark, light) => theme === "dark" ? dark : light;
+  const LIGHT = { bg:"#F5F0E6", deep:"#EDE8DC", warm:"#2A2318", dim:"#6A6050", mid:"#4A4030", sub:"#D5D0C4", g:"#8B7030" };
+
+  const toggleSound = () => {
+    if (soundOn) {
+      if (audioRef.current) {
+        audioRef.current.dispose?.();
+        audioRef.current = null;
+      }
+      setSoundOn(false);
+      try { localStorage.setItem("sakyant_sound", "false"); } catch(e) {}
+    } else {
+      setSoundOn(true);
+      try { localStorage.setItem("sakyant_sound", "true"); } catch(e) {} 
+      initSound();
+    }
+  };
+
+  const initSound = () => {
+    try {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const now = audioContext.currentTime;
+      
+      // Create oscillators for A2 and E3
+      const osc1 = audioContext.createOscillator();
+      const osc2 = audioContext.createOscillator();
+      osc1.frequency.value = 110; // A2
+      osc2.frequency.value = 165; // E3
+      osc1.type = 'sine';
+      osc2.type = 'sine';
+      
+      // Create gain nodes
+      const gainOsc1 = audioContext.createGain();
+      const gainOsc2 = audioContext.createGain();
+      gainOsc1.gain.value = 0.03;
+      gainOsc2.gain.value = 0.02;
+      
+      // Create master gain for overall volume control
+      const masterGain = audioContext.createGain();
+      masterGain.gain.value = 0.1;
+      
+      // Create tremolo LFO
+      const lfo = audioContext.createOscillator();
+      const lfoGain = audioContext.createGain();
+      lfo.frequency.value = 0.1;
+      lfo.type = 'sine';
+      lfoGain.gain.value = 0.05;
+      
+      // Connect tremolo to master gain
+      lfo.connect(lfoGain);
+      lfoGain.connect(masterGain.gain);
+      
+      // Connect oscillators
+      osc1.connect(gainOsc1);
+      osc2.connect(gainOsc2);
+      gainOsc1.connect(masterGain);
+      gainOsc2.connect(masterGain);
+      masterGain.connect(audioContext.destination);
+      
+      // Start oscillators
+      osc1.start(now);
+      osc2.start(now);
+      lfo.start(now);
+      
+      // Schedule stop after long time (10 hours)
+      osc1.stop(now + 36000);
+      osc2.stop(now + 36000);
+      lfo.stop(now + 36000);
+      
+      audioRef.current = { osc1, osc2, lfo, audioContext, dispose: () => { try { audioContext.close(); } catch(e) {} } };
+    } catch(e) { console.error('Audio init error:', e); }
+  };
+
+  // Load sound preference
+  useEffect(() => {
+    try { const saved = localStorage.getItem("sakyant_sound"); if (saved === "true") { setSoundOn(true); } } catch(e) {}
+  }, []);
+
+  // Initialize sound when soundOn becomes true
+  useEffect(() => {
+    if (soundOn && !audioRef.current) {
+      initSound();
+    }
+  }, [soundOn]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.dispose?.();
+      }
+    };
+  }, []);
+
+
+  const generateQRCode = async () => {
+    try {
+      const yantNames = [...collage].map(k => YANTS[k]).filter(Boolean).map(y => `${y.name} (${y.thai})`).join(", ");
+      const sorted = elementProfile ? Object.entries(elementProfile).sort((a,b) => b[1] - a[1]) : [];
+      const primaryEl = sorted.length > 0 ? elName(sorted[0][0]) : "";
+      const text = `✦ Sak Yant Consultation Request ✦
+
+I've completed my Sak Yant Oracle reading and would like to discuss receiving the following designs:
+
+Selected Yants: ${yantNames}
+${primaryEl ? `Primary Element: ${primaryEl}` : ""}
+
+I approach with respect and sincere intent. I would like to learn more about receiving these yants in the traditional way.
+
+— Via Sak Yant Oracle`;
+      
+      const qr = await QRCode.toDataURL(text, { width: 256, margin: 2, color: { dark: '#C9A84C', light: '#0D0B07' } });
+      setQrData(qr);
+    } catch(e) {
+      console.error('QR generation failed:', e);
+    }
+  };
+
+    const reset = () => { setPhase("intro"); setCurrentQ(0); setAnswers([]); setSelected(null); setRanked([]); setCollage(new Set()); setFilter("all"); setDetail(null); setTab("recommended"); setElementProfile(null); setOfferings(new Set()); setBodyAreas([]); setDiscretion(null); setPathChoice(null); setJourneyFilter("all"); setEditingNote(null); };
 
   const yantEntries = Object.entries(YANTS);
   const filtered = filter==="all" ? yantEntries : yantEntries.filter(([,y])=>y.category===filter);
@@ -2719,24 +2858,45 @@ export default function App() {
   const displayList = (ranked.length>0 && tab==="recommended") ? ranked.map(r=>[r.key,r.yant]) : filtered;
 
   return (
-    <div style={{ minHeight:"100vh", background:DARK, fontFamily:"Georgia,'Times New Roman',serif", color:WARM, position:"relative", overflow:"hidden" }}>
-      <div style={{ position:"fixed", inset:0, pointerEvents:"none", zIndex:0, background:`radial-gradient(ellipse at 15% 15%, rgba(201,168,76,0.05) 0%, transparent 55%), radial-gradient(ellipse at 85% 85%, rgba(201,168,76,0.04) 0%, transparent 55%), repeating-linear-gradient(0deg,transparent,transparent 50px,rgba(201,168,76,0.01) 50px,rgba(201,168,76,0.01) 51px), repeating-linear-gradient(90deg,transparent,transparent 50px,rgba(201,168,76,0.01) 50px,rgba(201,168,76,0.01) 51px)` }} />
+    <div style={{ minHeight:"100vh", background: theme==="dark" ? DARK : "#F5F0E6", fontFamily:"Georgia,'Times New Roman',serif", color:WARM, position:"relative", overflow:"hidden" }}>
+      <div style={{ position:"fixed", inset:0, pointerEvents:"none", zIndex:0, background: theme==="dark" ? `radial-gradient(ellipse at 15% 15%, rgba(201,168,76,0.05) 0%, transparent 55%), radial-gradient(ellipse at 85% 85%, rgba(201,168,76,0.04) 0%, transparent 55%), repeating-linear-gradient(0deg,transparent,transparent 50px,rgba(201,168,76,0.01) 50px,rgba(201,168,76,0.01) 51px), repeating-linear-gradient(90deg,transparent,transparent 50px,rgba(201,168,76,0.01) 50px,rgba(201,168,76,0.01) 51px)` : `radial-gradient(ellipse at 15% 15%, rgba(139,112,48,0.08) 0%, transparent 55%), radial-gradient(ellipse at 85% 85%, rgba(139,112,48,0.06) 0%, transparent 55%)` }} />
 
       <div style={{ position:"relative", zIndex:1, maxWidth:920, margin:"0 auto", padding:"0 20px", opacity:loaded?1:0, transition:"opacity 0.8s ease" }}>
       {/* Language Selector */}
       <div style={{ position:"fixed", top:16, right:16, zIndex:100 }}>
+        {/* Sound Toggle Button */}
+        <button onClick={toggleSound} style={{
+          position:"fixed", top:16, left:16, zIndex:100,
+          background: theme==="dark" ? DEEP : "#EDE8DC", border:`1px solid ${theme==="dark" ? SUB : "#D5D0C4"}`, color:soundOn?G:DIM,
+          padding:"6px 12px", fontSize:11, cursor:"pointer", fontFamily:"Georgia,serif",
+          display:"flex", alignItems:"center", gap:6, transition:"all 0.2s ease",
+        }}>
+          {soundOn ? "♪ On" : "♪ Off"}
+        </button>
+
+        {/* Theme Toggle Button */}
+        <button onClick={()=>setTheme(t=>t==="dark"?"light":"dark")} style={{
+          position:"fixed", top:16, left: 80, zIndex:100,
+          background: theme==="dark"?DEEP:"#EDE8DC", border:`1px solid ${theme==="dark"?SUB:"#D5D0C4"}`,
+          color: theme==="dark"?DIM:"#6A6050",
+          padding:"6px 12px", fontSize:11, cursor:"pointer", fontFamily:"Georgia,serif",
+        }}>
+          {theme==="dark" ? "☀" : "☾"}
+        </button>
+
+        {/* Language Selector */}
         <button onClick={()=>setShowLang(!showLang)} style={{
-          background:DEEP, border:`1px solid ${SUB}`, color:DIM, padding:"6px 12px",
+          background: theme==="dark" ? DEEP : "#EDE8DC", border:`1px solid ${theme==="dark" ? SUB : "#D5D0C4"}`, color:theme==="dark" ? DIM : "#6A6050", padding:"6px 12px",
           fontSize:11, cursor:"pointer", fontFamily:"Georgia,serif", display:"flex", alignItems:"center", gap:6,
         }}>
           {LANGUAGES.find(l=>l.code===lang)?.flag} {lang.toUpperCase()}
         </button>
         {showLang && (
-          <div style={{ position:"absolute", top:"100%", right:0, marginTop:4, background:DEEP, border:`1px solid ${SUB}`, zIndex:101, minWidth:140 }}>
+          <div style={{ position:"absolute", top:"100%", right:0, marginTop:4, background: theme==="dark" ? DEEP : "#EDE8DC", border:`1px solid ${theme==="dark" ? SUB : "#D5D0C4"}`, zIndex:101, minWidth:140 }}>
             {LANGUAGES.map(l => (
               <button key={l.code} onClick={()=>{setLang(l.code);setShowLang(false);}} style={{
                 display:"block", width:"100%", background:lang===l.code?"rgba(201,168,76,0.1)":"transparent",
-                border:"none", borderBottom:`1px solid ${SUB}`, color:lang===l.code?G:DIM,
+                border:"none", borderBottom:`1px solid ${theme==="dark" ? SUB : "#D5D0C4"}`, color:lang===l.code?G:(theme==="dark" ? DIM : "#6A6050"),
                 padding:"8px 12px", fontSize:11, cursor:"pointer", fontFamily:"Georgia,serif",
                 textAlign:"left",
               }}>
@@ -2760,6 +2920,7 @@ export default function App() {
             <div style={{ display:"flex", gap:14, justifyContent:"center", flexWrap:"wrap" }}>
               <Btn primary onClick={()=>setPhase("quiz")}>Begin the Reading</Btn>
               <Btn onClick={()=>{ setRanked([]); setTab("all"); setPhase("library"); }}>Browse All {yantEntries.length} Designs</Btn>
+              <Btn small onClick={()=>setPhase("gallery")}>Practitioner Gallery</Btn>
             </div>
             {Object.keys(journey).length > 0 && (
               <div style={{ marginTop:14 }}>
@@ -3412,7 +3573,46 @@ export default function App() {
         )}
       </div>
 
-      {detail && YANTS[detail] && (
+
+        {/* GALLERY */}
+        {phase==="gallery" && (
+          <div style={{ paddingTop:60, paddingBottom:80, textAlign:"center", maxWidth:620, margin:"0 auto" }}>
+            <div style={{ fontSize:10, letterSpacing:6, color:G, marginBottom:28, textTransform:"uppercase" }}>✦ Sacred Artistry</div>
+            <h2 style={{ fontSize:22, fontWeight:"normal", color:WARM, margin:"0 0 12px", fontStyle:"italic" }}>Practitioner Gallery</h2>
+            <p style={{ fontSize:13, lineHeight:1.8, color:DIM, maxWidth:440, margin:"0 auto 40px" }}>
+              A curated collection of real Sak Yant work from verified ajarn masters. Coming soon.
+            </p>
+            
+            {/* Placeholder grid */}
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(160px, 1fr))", gap:14, marginBottom:40 }}>
+              {[1,2,3,4,5,6].map(i => (
+                <div key={i} style={{
+                  aspectRatio:"1", border:`1px dashed ${SUB}`, display:"flex", alignItems:"center", justifyContent:"center",
+                  background:"rgba(201,168,76,0.02)",
+                }}>
+                  <div style={{ textAlign:"center" }}>
+                    <div style={{ fontSize:24, color:G, opacity:0.2, marginBottom:8 }}>✦</div>
+                    <div style={{ fontSize:9, color:DIM, letterSpacing:2, textTransform:"uppercase" }}>Coming Soon</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div style={{ border:`1px solid ${G}`, padding:"28px 24px", background:"rgba(201,168,76,0.03)", marginBottom:28 }}>
+              <div style={{ fontSize:10, letterSpacing:4, color:G, textTransform:"uppercase", marginBottom:12 }}>✦ For Practitioners</div>
+              <p style={{ fontSize:13, lineHeight:1.8, color:DIM, margin:"0 0 16px" }}>
+                Are you a Sak Yant ajarn or monk? Showcase your sacred work to seekers worldwide.
+              </p>
+              <p style={{ fontSize:11, color:DIM, letterSpacing:1 }}>
+                Contact: sakyantoracle@gmail.com
+              </p>
+            </div>
+            
+            <Btn small onClick={()=>setPhase("intro")}>← Back to Home</Btn>
+          </div>
+        )}
+
+            {detail && YANTS[detail] && (
         <Modal yantKey={detail} yant={YANTS[detail]} inCollage={collage.has(detail)} onToggle={toggleCollage} onClose={()=>setDetail(null)} currentStatus={journey[detail]} onSetStatus={setYantStatus} setBodyPreview={setBodyPreview} />
       )}
 
@@ -3420,6 +3620,19 @@ export default function App() {
         <BodyPreview yant={YANTS[bodyPreview]} onClose={()=>setBodyPreview(null)} />
       )}
 
+      {qrData && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(13,11,7,0.8)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:200 }}>
+          <div style={{ background:DEEP, border:`1px solid ${G}`, padding:"32px", textAlign:"center", maxWidth:320 }}>
+            <div style={{ fontSize:10, letterSpacing:4, color:G, marginBottom:16, textTransform:"uppercase" }}>✦ QR Code</div>
+            <img src={qrData} alt="QR Code" style={{ width:256, height:256, marginBottom:16 }} />
+            <p style={{ fontSize:12, color:DIM, marginBottom:20, lineHeight:1.6 }}>Your ajarn can scan this to see your reading</p>
+            <button onClick={()=>setQrData(null)} style={{
+              background:"transparent", border:`1px solid ${SUB}`, color:DIM, padding:"8px 16px",
+              fontSize:10, letterSpacing:2, textTransform:"uppercase", cursor:"pointer", fontFamily:"Georgia,serif"
+            }}>Close</button>
+          </div>
+        </div>
+      )}
       <style>{`
   * { box-sizing: border-box; }
   button { outline: none; }
