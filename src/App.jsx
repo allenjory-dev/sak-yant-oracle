@@ -3217,7 +3217,7 @@ I approach with respect and sincere intent. I would like to learn more about rec
                             onMouseEnter={e=>{ e.currentTarget.style.borderColor=G; e.currentTarget.style.color=G; }}
                             onMouseLeave={e=>{ e.currentTarget.style.borderColor=DIM; e.currentTarget.style.color=DIM; }}
                           >{t("try_it_on")}</button>
-                          <button onClick={(e) => { e.stopPropagation(); setYantStatus(r.key, "next"); }} style={{
+                          <button onClick={(e) => { e.stopPropagation(); setJourney(prev => { const n = {...prev}; ranked.slice(0,3).forEach(x => { if (n[x.key]==="next") delete n[x.key]; }); if (!isPicked) n[r.key] = "next"; return n; }); if (!isPicked) setCollage(prev => { const n = new Set(prev); n.add(r.key); return n; }); }} style={{
                             background: isPicked ? G : "transparent",
                             border:`1px solid ${G}`, color: isPicked ? "#0D0B07" : G, padding:"4px 10px",
                             fontSize:8, letterSpacing:1, textTransform:"uppercase", cursor:"pointer", fontFamily:"Georgia,serif",
