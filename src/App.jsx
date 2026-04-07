@@ -1,34 +1,1629 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+
+const TRANSLATIONS = {
+  en: {
+    // Intro
+    sacred_geometry: "Sacred Geometry · Ancient Blessing",
+    app_title: "Sak Yant Oracle",
+    app_subtitle: "Tattoo Guidance & Design Library",
+    intro_desc: "Sak yants are sacred geometric tattoos from Thailand, Cambodia, and Laos — blessed by monks and ajarn masters, carrying real spiritual weight.",
+    intro_sub: "Walk through the four elements, offer your intentions, and receive a personalised yant manifestation. The journey takes about two minutes.",
+    begin_reading: "Begin the Reading",
+    browse_all: "Browse All",
+    designs: "Designs",
+    continue_journey: "Continue My Journey",
+    yants_word: "yants",
+    approach_respect: "Approach with Respect",
+    disclaimer: "Meanings vary by lineage, ajarn, and temple. This app guides — it does not declare. Final design and placement should always be confirmed with a qualified practitioner.",
+    // Elements
+    elem_earth: "Earth", elem_water: "Water", elem_fire: "Fire", elem_air: "Air",
+    elem_earth_desc: "Foundation · Roots · What you protect",
+    elem_water_desc: "Depth · Intuition · What flows through you",
+    elem_fire_desc: "Drive · Courage · What burns in you",
+    elem_air_desc: "Vision · Freedom · What you reach toward",
+    // Offerings
+    off_protection: "Protection", off_fortune: "Good Fortune", off_courage: "Courage",
+    off_love: "Love & Charisma", off_wisdom: "Wisdom", off_travel: "Safe Journeys",
+    off_discipline: "Discipline", off_transformation: "Transformation", off_success: "Success",
+    // Body Areas
+    area_upper_back: "Upper Back", area_center_back: "Center Back", area_neck_spine: "Neck / Spine",
+    area_shoulder: "Shoulder", area_chest: "Chest", area_upper_arm: "Upper Arm",
+    area_forearm: "Forearm", area_thigh: "Thigh", area_calf: "Calf",
+    // Quiz Nav
+    back: "← Back", continue_btn: "Continue →", reveal_yants: "Reveal My Yants",
+    of_word: "of", selected: "selected", select_at_least: "select at least",
+    areas_selected: "area(s) selected",
+    // Questions
+    q_path: "How do you want to walk this path?",
+    q_path_sub: "This shapes the guidance you'll receive.",
+    q_path_opt1: "I seek a design that follows the ancestral lineage — traditional placement, traditional meaning",
+    q_path_opt2: "I seek a design that serves as a personal symbolic anchor — meaning matters, but on my terms",
+    q_path_opt3: "I'm still learning — guide me and I'll listen",
+    q_earth: "What is the ground beneath your feet?",
+    q_earth_sub: "Earth asks: what do you stand on?",
+    q_earth_opt1: "My people — the ones I'd do anything for",
+    q_earth_opt2: "My own two hands — what I've built and what I've survived",
+    q_earth_opt3: "Something ancient — tradition, lineage, roots that go deeper than me",
+    q_earth_opt4: "Honestly? I'm still building it",
+    q_water: "What runs beneath your surface?",
+    q_water_sub: "Water asks: what do you carry that others don't see?",
+    q_water_opt1: "A deep intuition — I feel things before they happen",
+    q_water_opt2: "Old pain I'm learning to release",
+    q_water_opt3: "A quiet love that runs deeper than I show",
+    q_water_opt4: "Restlessness — a current pulling me somewhere new",
+    q_fire: "What would you walk through fire for?",
+    q_fire_sub: "Fire asks: what makes you dangerous — in the best way?",
+    q_fire_opt1: "The people I love — without hesitation",
+    q_fire_opt2: "My own freedom — I refuse to be caged",
+    q_fire_opt3: "Something I haven't built yet — a vision only I can see",
+    q_fire_opt4: "What's right — I fight for justice even when it costs me",
+    q_air: "Close your eyes. What do you see?",
+    q_air_sub: "Air asks: what are you reaching toward?",
+    q_air_opt1: "Stillness — peace after everything I've been through",
+    q_air_opt2: "Abundance — I want life to overflow with good things",
+    q_air_opt3: "Connection — being truly seen and deeply known",
+    q_air_opt4: "The unknown — somewhere I haven't been yet",
+    q_offerings: "Place your offerings on the table.",
+    q_offerings_sub: "Choose 2 or 3 intentions you want your yant to carry.",
+    q_balance: "Which element do you need more of?",
+    q_balance_sub: "Not what you are — what's missing. The yant fills the gap.",
+    q_balance_opt1: "Earth — I need grounding, roots, something solid beneath me",
+    q_balance_opt2: "Water — I need to feel again, to release, to transform",
+    q_balance_opt3: "Fire — I need courage, power, the will to finally act",
+    q_balance_opt4: "Air — I need lightness, vision, room to breathe",
+    q_placement: "Where on your body do you feel this belongs?",
+    q_placement_sub: "Tap the areas you're open to. You can select multiple.",
+    q_discretion: "Does this need to stay between you and the ink?",
+    q_discretion_sub: "No judgment — practical needs shape the right choice.",
+    q_discretion_opt1: "Yes — it should be easy to conceal",
+    q_discretion_opt2: "I don't mind it showing sometimes",
+    q_discretion_opt3: "I want it visible — this is part of who I am",
+    q_collage: "One yant, or many?",
+    q_collage_sub: "Many people build a sacred body map over years.",
+    q_collage_opt1: "One perfect yant — singular and meaningful",
+    q_collage_opt2: "A foundation piece to start my collection",
+    q_collage_opt3: "I want a full collage — I'm thinking big",
+    q_collage_opt4: "Not sure yet — show me what resonates",
+    // Reading
+    your_manifestation: "Your Manifestation",
+    your_top_yants: "Your Top Yants",
+    tap_details: "Tap any yant to see full details",
+    your_offerings: "Your Offerings",
+    explore_library: "Explore Full Library →",
+    share_reading: "Share Your Reading",
+    copied: "✓ Copied",
+    primary_element_is: "Your primary element is",
+    with_strong: "with strong",
+    influence: "influence",
+    reading_earth: "You are rooted — grounded in what matters, steady when the world shakes.",
+    reading_water: "You run deep — feeling, transforming, carrying currents others can't see.",
+    reading_fire: "You burn — courage, drive, a flame that refuses to go out.",
+    reading_air: "You reach — always looking upward, outward, toward what could be.",
+    combo_earth_water: "Rooted but flowing. You hold fast to what matters while letting go of what doesn't serve you.",
+    combo_earth_fire: "Solid and fierce. You protect with the strength of mountains and the heat of conviction.",
+    combo_earth_air: "Grounded yet expansive. Your roots go deep but your vision reaches far.",
+    combo_water_fire: "Depth meets drive. You feel everything and channel it into unstoppable forward motion.",
+    combo_water_air: "Intuitive and free. You sense what others miss and follow currents no one else can feel.",
+    combo_fire_air: "Burning bright and reaching high. Pure ambition tempered by vision and openness.",
+    // Library
+    reading_complete: "Reading Complete",
+    your_yant_library: "Your Yant Library",
+    design_library: "Design Library",
+    in_collection: "in collection",
+    total_designs: "total designs",
+    my_journey: "My Journey",
+    view_collection: "View Collection",
+    start_over: "Start Over",
+    for_you: "For You",
+    all_n_designs: "All Designs",
+    cat_all: "All Designs", cat_geometric: "Geometric", cat_animal: "Animal Spirits", cat_deity: "Deities", cat_nature: "Nature",
+    click_to_learn: "Click any design to learn more · Use + Add to build your collection",
+    in_collection_btn: "✓ In Collection", add_btn: "+ Add",
+    // Modal
+    placement_label: "Placement", energy_label: "Energy", visibility_label: "Visibility", size_label: "Size",
+    vis_hidden: "Easy to conceal", vis_semi: "Semi-hidden", vis_visible: "Visible",
+    design_word: "design", collage_note: "Collage Note",
+    see_photos: "See Real Tattoo Photos →",
+    mark_journey: "Mark Your Journey",
+    journey_have: "✓ I Have This", journey_next: "Getting Next", journey_someday: "Someday",
+    remove_collection: "Remove from Collection", add_to_collection: "Add to Collection",
+    // Collage
+    your_sacred_collection: "Your Sacred Collection",
+    yants_selected: "Yants Selected",
+    no_designs_yet: "No designs selected yet. Go back and choose your yants.",
+    placement_collage_notes: "Placement & Collage Notes",
+    the_next_step: "The Next Step",
+    bring_to_master: "Bring This Reading to a Master",
+    next_step_desc: "Your manifestation is complete — but the yant is not yours until it's given by a qualified ajarn or monk. Share your reading, discuss your choices, and receive the blessing with respect and intention.",
+    copy_consultation: "Copy Consultation Request", share_collection: "Share Collection",
+    sacred_not_decorative: "Sak yants are sacred — not decorative.",
+    seek_legitimate: "Seek a legitimate monk or ajarn master in Thailand.",
+    approach_humility: "Approach with humility, offerings, and sincere intent.",
+    meanings_vary: "Meanings vary by lineage, ajarn, and temple.",
+    app_guides: "This app guides — it does not declare absolute truth.",
+    remove_btn: "Remove", view_details: "View Details", back_to_library: "← Back to Library",
+    // Journey
+    my_sacred_journey: "My Sacred Journey",
+    your_sak_yant_plan: "Your Sak Yant Plan",
+    received_word: "received", planned_word: "planned", someday_word: "someday",
+    library_btn: "← Library", collection_btn: "Collection",
+    filter_all: "All", filter_received: "Received ✓", filter_next: "Getting Next", filter_someday: "Someday",
+    journey_empty: "Your journey starts here. Browse the library and mark yants you have, want next, or dream about.",
+    browse_library: "Browse Library",
+    have_it: "✓ Have It", next_btn: "Next", someday_btn: "Someday",
+    add_note: "+ Add a personal note",
+    note_placeholder: "Add a personal note — when you got it, who gave it, how it felt...",
+    note_save_hint: "Press Enter to save · Shift+Enter for new line",
+    journey_summary: "Journey Summary",
+    stat_received: "Received", stat_getting_next: "Getting Next", stat_someday: "Someday", stat_total: "Total Planned",
+    language: "Language",
+  },
+  th: {
+    // Intro
+    sacred_geometry: "เรขาคณิตศักดิ์สิทธิ์ · สิ่งศักดิ์สิทธิ์โบราณ",
+    app_title: "สักยันต์ออราเคิล",
+    app_subtitle: "คำแนะนำสักยันต์ & ห้องสมุดออกแบบ",
+    intro_desc: "สักยันต์เป็นรูปลักษณ์เรขาคณิตศักดิ์สิทธิ์จากประเทศไทย กัมพูชา และลาว — พระสงค์และครูบาอาจารย์ให้พร หนักสำคัญและมีจิตใจจริง",
+    intro_sub: "เดินผ่านธาตุสี่ประการ มอบจิตสำนึกของคุณ และรับการแสดงตนของยันต์ส่วนตัวของคุณ การเดินทางใช้เวลาประมาณสองนาที",
+    begin_reading: "เริ่มการทำนาย",
+    browse_all: "ดูทั้งหมด",
+    designs: "ออกแบบ",
+    continue_journey: "ดำเนินการเดินทางของฉัน",
+    yants_word: "ยันต์",
+    approach_respect: "ด้วยความเคารพ",
+    disclaimer: "ความหมายแตกต่างกันไปตามวงศ์วาน ครูบาอาจารย์ และวัดต่างๆ แอปนี้คือการแนะนำ — ไม่ได้ประกาศ ควรยืนยันการออกแบบและตำแหน่งสุดท้ายกับผู้ปฏิบัติที่มีคุณวุฒิเสมอ",
+    // Elements
+    elem_earth: "ดิน", elem_water: "น้ำ", elem_fire: "ไฟ", elem_air: "ลม",
+    elem_earth_desc: "รากฐาน · เหยื่อ · สิ่งที่คุณปกป้อง",
+    elem_water_desc: "ความลึก · สัญชาตญาณ · สิ่งที่ไหลผ่านคุณ",
+    elem_fire_desc: "แรงผลักดัน · ความกล้าหาญ · สิ่งที่ลุกโชนในคุณ",
+    elem_air_desc: "วิสัยทัศน์ · เสรีภาพ · สิ่งที่คุณมุ่งไปถึง",
+    // Offerings
+    off_protection: "การปกป้อง", off_fortune: "โชคดี", off_courage: "ความกล้าหาญ",
+    off_love: "ความรักและเสนห์", off_wisdom: "ปัญญา", off_travel: "การเดินทางที่ปลอดภัย",
+    off_discipline: "วินัย", off_transformation: "การเปลี่ยนแปลง", off_success: "ความสำเร็จ",
+    // Body Areas
+    area_upper_back: "ตรงกลางลังกา", area_center_back: "ส่วนกลางลังกา", area_neck_spine: "คอ / สันหลัง",
+    area_shoulder: "ไหล่", area_chest: "หน้าอก", area_upper_arm: "แขนบน",
+    area_forearm: "แขนล่าง", area_thigh: "ต้นขา", area_calf: "แข้ง",
+    // Quiz Nav
+    back: "← ย้อนกลับ", continue_btn: "ต่อไป →", reveal_yants: "เปิดเผยยันต์ของฉัน",
+    of_word: "ของ", selected: "เลือกแล้ว", select_at_least: "เลือกอย่างน้อย",
+    areas_selected: "พื้นที่เลือก",
+    // Questions
+    q_path: "คุณต้องการเดินทางบนเส้นทางนี้อย่างไร",
+    q_path_sub: "สิ่งนี้กำหนดรูปของคำแนะนำที่คุณจะได้รับ",
+    q_path_opt1: "ฉันต้องการออกแบบที่ตามบรรพบุรุษ — การวางตำแหน่งแบบเดิม ความหมายแบบเดิม",
+    q_path_opt2: "ฉันต้องการออกแบบที่ทำหน้าที่เป็นสัญลักษณ์ส่วนตัวของฉัน — ความหมายสำคัญ แต่ตามเงื่อนไขของฉัน",
+    q_path_opt3: "ฉันยังเรียนรู้อยู่ — แนะนำฉันและฉันจะฟัง",
+    q_earth: "พื้นดินใต้เท้าของคุณคืออะไร",
+    q_earth_sub: "ดินถาม: คุณยืนบนอะไร",
+    q_earth_opt1: "ชาวบ้านของฉัน — พวกที่ฉันจะทำอะไรก็ได้เพื่อเขา",
+    q_earth_opt2: "มือของฉันเอง — สิ่งที่ฉันสร้างและสิ่งที่ฉันรอด",
+    q_earth_opt3: "สิ่งโบราณ — วัฒนธรรม วงศ์วาน รากที่ลึกกว่าตัวฉัน",
+    q_earth_opt4: "พูดตามตรง ฉันยังสร้างมันอยู่",
+    q_water: "อะไรไหลอยู่ใต้พื้นผิวของคุณ",
+    q_water_sub: "น้ำถาม: คุณแบกอะไรที่คนอื่นไม่เห็น",
+    q_water_opt1: "สัญชาตญาณลึกๆ — ฉันรู้สึกว่าสิ่งต่างๆจะเกิดขึ้นก่อนที่มันจะเกิด",
+    q_water_opt2: "ความเจ็บปวดเก่า ฉันกำลังเรียนรู้ที่จะปล่อยมันไป",
+    q_water_opt3: "ความรักเงียบๆที่ลึกกว่าที่ฉันแสดง",
+    q_water_opt4: "ความกระสับกระส่ายไม่สงบ — กระแสที่ดึงฉันไปที่ใหม่",
+    q_fire: "คุณจะเดินผ่านไฟได้อะไร",
+    q_fire_sub: "ไฟถาม: อะไรทำให้คุณอันตราย — ด้วยวิธีที่ดี",
+    q_fire_opt1: "ผู้คนที่ฉันรัก — โดยไม่ลังเล",
+    q_fire_opt2: "เสรีภาพของฉันเอง — ฉันปฏิเสธที่จะถูกจำกัด",
+    q_fire_opt3: "สิ่งที่ฉันยังไม่สร้าง — วิสัยทัศน์ที่เฉพาะตัวฉันเท่านั้น",
+    q_fire_opt4: "สิ่งที่ถูกต้อง — ฉันสู้เพื่อความยุติธรรม แม้ว่ามันจะเสียสละฉัน",
+    q_air: "ปิดตาของคุณ คุณเห็นอะไร",
+    q_air_sub: "ลมถาม: คุณมุ่งไปยังอะไร",
+    q_air_opt1: "ความสงบ — สหายหลังจากทุกอย่างที่ฉันผ่านมา",
+    q_air_opt2: "ความอุดมสมบูรณ์ — ฉันต้องการให้ชีวิตล้นเหลือด้วยสิ่งดี",
+    q_air_opt3: "การเชื่อมต่อ — เห็นด้วยตาตรงและรู้จักลึก",
+    q_air_opt4: "สิ่งที่ไม่รู้จัก — ที่ไหนสักแห่งที่ฉันยังไม่เคยไป",
+    q_offerings: "วางเครื่องบูชาบนโต๊ะ",
+    q_offerings_sub: "เลือกคำขออ้อนวอน 2 หรือ 3 อย่างที่คุณต้องการให้ยันต์แบกหามไป",
+    q_balance: "ธาตุไหนที่คุณต้องการเพิ่มเติม",
+    q_balance_sub: "ไม่ใช่สิ่งที่คุณเป็น — สิ่งที่หายไป ยันต์เติมเต็มช่องว่าง",
+    q_balance_opt1: "ดิน — ฉันต้องการรากฐาน ราก บางสิ่งบางอย่างที่มั่นคงใต้ตัวฉัน",
+    q_balance_opt2: "น้ำ — ฉันต้องการรู้สึกอีกครั้ง ปล่อยมันไป เปลี่ยนแปลง",
+    q_balance_opt3: "ไฟ — ฉันต้องการความกล้าหาญ อำนาจ จิตสำนึกในการกระทำ",
+    q_balance_opt4: "ลม — ฉันต้องการความเบา วิสัยทัศน์ ที่ว่างสำหรับหายใจ",
+    q_placement: "คุณรู้สึกว่าสิ่งนี้อยู่ที่ตำแหน่งไหนในร่างกายของคุณ",
+    q_placement_sub: "แตะพื้นที่ที่คุณเปิดกว้าง คุณสามารถเลือกหลายอย่าง",
+    q_discretion: "สิ่งนี้ต้องอยู่ระหว่างคุณและหมึกหรือไม่",
+    q_discretion_sub: "ไม่มีการตัดสิน — ความต้องการในทางปฏิบัติสร้างรูปแบบที่ถูกต้อง",
+    q_discretion_opt1: "ใช่ — ควรซ่อนได้ง่าย",
+    q_discretion_opt2: "ฉันไม่ว่าถ้ามันแสดงบางครั้ง",
+    q_discretion_opt3: "ฉันต้องการให้มองเห็น — นี่คือส่วนหนึ่งของตัวฉัน",
+    q_collage: "ยันต์หนึ่งอันหรือมากกว่า",
+    q_collage_sub: "หลายคนสร้างแผนที่ลำดับเหตุการณ์ศักดิ์สิทธิ์ตลอดปี",
+    q_collage_opt1: "ยันต์เดียวที่สมบูรณ์แบบ — เดี่ยวและมีความหมาย",
+    q_collage_opt2: "ชิ้นรากฐาน เพื่อเริ่มต้นคอลเลกชันของฉัน",
+    q_collage_opt3: "ฉันต้องการการอ้อมค้อม — ฉันคิดอย่างใหญ่โต",
+    q_collage_opt4: "ยังไม่แน่ใจ — แสดงสิ่งที่ตรงกับฉัน",
+    // Reading
+    your_manifestation: "การแสดงตนของคุณ",
+    your_top_yants: "ยันต์สำคัญของคุณ",
+    tap_details: "แตะยันต์ใดๆ เพื่อดูรายละเอียดทั้งหมด",
+    your_offerings: "เครื่องบูชาของคุณ",
+    explore_library: "สำรวจห้องสมุดแบบเต็ม →",
+    share_reading: "แบ่งปันการทำนายของคุณ",
+    copied: "✓ คัดลอกแล้ว",
+    primary_element_is: "ธาตุหลักของคุณคือ",
+    with_strong: "พร้อมกับ",
+    influence: "อิทธิพล",
+    reading_earth: "คุณมีรากฐาน — มั่นคงในสิ่งที่สำคัญ มั่นคงเมื่อโลกสั่นไหว",
+    reading_water: "คุณไหลลึก — รู้สึก เปลี่ยนแปลง แบกกระแสที่คนอื่นไม่เห็น",
+    reading_fire: "คุณลุกโชน — ความกล้าหาญ แรงผลักดัน เปลวไฟที่ปฏิเสธที่จะดับ",
+    reading_air: "คุณมุ่งไป — มองขึ้นไป นอก ไปยังสิ่งที่อาจเป็น",
+    combo_earth_water: "มีรากแต่ไหลลื่น คุณยึดมั่นในสิ่งที่สำคัญขณะปล่อยสิ่งที่ไม่ให้บริการแก่คุณ",
+    combo_earth_fire: "มั่นคงและดุร้าย คุณปกป้องด้วยพลังของภูเขาและความร้อนแรงของการมุ่งมั่น",
+    combo_earth_air: "มีรากแต่ขยายออก รากของคุณลึก แต่วิสัยทัศน์ของคุณไกล",
+    combo_water_fire: "ความลึกพบแรงผลักดัน คุณรู้สึกทั้งหมดและนำมันไปสู่การเคลื่อนไปข้างหน้าที่ไม่อาจหยุดได้",
+    combo_water_air: "สัญชาตญาณและเสรีภาพ คุณรู้สึกว่าสิ่งที่คนอื่นพลาด และตามกระแสที่ไม่มีใครสามารถรู้สึกได้",
+    combo_fire_air: "ลุกโชนสดใสและมุ่งสูง ความทะเยาะทะยานล้วนๆผ่อนคลายด้วยวิสัยทัศน์และการเปิดกว้าง",
+    // Library
+    reading_complete: "การทำนายเสร็จสิ้น",
+    your_yant_library: "ห้องสมุดยันต์ของคุณ",
+    design_library: "ห้องสมุดออกแบบ",
+    in_collection: "ในคอลเลกชัน",
+    total_designs: "ออกแบบทั้งหมด",
+    my_journey: "การเดินทางของฉัน",
+    view_collection: "ดูคอลเลกชัน",
+    start_over: "เริ่มต้นใหม่",
+    for_you: "สำหรับคุณ",
+    all_n_designs: "ออกแบบทั้งหมด",
+    cat_all: "ออกแบบทั้งหมด", cat_geometric: "เรขาคณิต", cat_animal: "วิญญาณสัตว์", cat_deity: "เทวดา", cat_nature: "ธรรมชาติ",
+    click_to_learn: "คลิกออกแบบใดๆ เพื่อเรียนรู้เพิ่มเติม · ใช้ + เพิ่มเพื่อสร้างคอลเลกชันของคุณ",
+    in_collection_btn: "✓ ในคอลเลกชัน", add_btn: "+ เพิ่ม",
+    // Modal
+    placement_label: "ตำแหน่ง", energy_label: "พลังงาน", visibility_label: "ความมองเห็น", size_label: "ขนาด",
+    vis_hidden: "ซ่อนได้ง่าย", vis_semi: "ซ่อนเพียงบางส่วน", vis_visible: "มองเห็น",
+    design_word: "ออกแบบ", collage_note: "บันทึกการรวบรวม",
+    see_photos: "ดูรูปภาพสักจริง →",
+    mark_journey: "ทำเครื่องหมายการเดินทางของคุณ",
+    journey_have: "✓ ฉันมีสิ่งนี้", journey_next: "จะได้รับต่อไป", journey_someday: "วันหนึ่ง",
+    remove_collection: "นำออกจากคอลเลกชัน", add_to_collection: "เพิ่มลงในคอลเลกชัน",
+    // Collage
+    your_sacred_collection: "คอลเลกชันศักดิ์สิทธิ์ของคุณ",
+    yants_selected: "ยันต์ที่เลือก",
+    no_designs_yet: "ยังไม่มีออกแบบเลือก กลับไปและเลือกยันต์ของคุณ",
+    placement_collage_notes: "ตำแหน่งและบันทึกการอ้อมค้อม",
+    the_next_step: "ขั้นตอนถัดไป",
+    bring_to_master: "นำการทำนายนี้ไปยังครูบา",
+    next_step_desc: "การแสดงตนของคุณเสร็จสิ้น — แต่ยันต์ไม่ใช่ของคุณจนกว่าจะได้รับจากครูบาอาจารย์หรือพระสงค์ที่มีคุณวุฒิ แบ่งปันการทำนายของคุณ อภิปรายตัวเลือกของคุณ และรับการอวยพรด้วยความเคารพและจิตสำนึก",
+    copy_consultation: "คัดลอกคำขอปรึกษา", share_collection: "แบ่งปันคอลเลกชัน",
+    sacred_not_decorative: "สักยันต์ศักดิ์สิทธิ์ — ไม่ใช่ตกแต่ง",
+    seek_legitimate: "หาครูบาอาจารย์หรือพระสงค์ที่มีหลักเกณฑ์ในประเทศไทย",
+    approach_humility: "ด้วยความเป็นสามัญชน เครื่องบูชา และจิตสำนึกอันจริงใจ",
+    meanings_vary: "ความหมายแตกต่างกันไปตามวงศ์วาน ครูบาอาจารย์ และวัดต่างๆ",
+    app_guides: "แอปนี้เป็นการแนะนำ — ไม่ได้ประกาศความจริงแบบสัมบูรณ์",
+    remove_btn: "นำออก", view_details: "ดูรายละเอียด", back_to_library: "← กลับไปยังห้องสมุด",
+    // Journey
+    my_sacred_journey: "การเดินทางศักดิ์สิทธิ์ของฉัน",
+    your_sak_yant_plan: "แผนสักยันต์ของคุณ",
+    received_word: "ได้รับ", planned_word: "วางแผน", someday_word: "วันหนึ่ง",
+    library_btn: "← ห้องสมุด", collection_btn: "คอลเลกชัน",
+    filter_all: "ทั้งหมด", filter_received: "ได้รับ ✓", filter_next: "จะได้รับต่อไป", filter_someday: "วันหนึ่ง",
+    journey_empty: "การเดินทางของคุณเริ่มต้นที่นี่ สำรวจห้องสมุดและทำเครื่องหมายยันต์ที่คุณมี ต้องการถัดไป หรือฝันเกี่ยวกับ",
+    browse_library: "สำรวจห้องสมุด",
+    have_it: "✓ มีแล้ว", next_btn: "ถัดไป", someday_btn: "วันหนึ่ง",
+    add_note: "+ เพิ่มบันทึกส่วนตัว",
+    note_placeholder: "เพิ่มบันทึกส่วนตัว — เมื่อคุณได้มัน ใครให้มัน ความรู้สึกเป็นอย่างไร...",
+    note_save_hint: "กดปุ่ม Enter เพื่อบันทึก · Shift+Enter สำหรับบรรทัดใหม่",
+    journey_summary: "สรุปการเดินทาง",
+    stat_received: "ได้รับ", stat_getting_next: "จะได้รับต่อไป", stat_someday: "วันหนึ่ง", stat_total: "ทั้งหมดวางแผน",
+    language: "ภาษา",
+  },
+  ja: {
+    // Intro
+    sacred_geometry: "神聖な幾何学 · 古き祝福",
+    app_title: "サクヤント・オラクル",
+    app_subtitle: "タットゥーの指南 & デザイン図書館",
+    intro_desc: "サクヤントはタイ、カンボジア、ラオスから生まれた神聖な幾何学的タットゥー — 僧侶とアジャルン・マスターによる祝福を受け、本当の霊的な重みを持ちます。",
+    intro_sub: "四つの要素を歩み、あなたの意図を捧げ、個人化されたヤントの顕現を受け取ってください。この旅は約2分かかります。",
+    begin_reading: "リーディングを始める",
+    browse_all: "すべて見る",
+    designs: "デザイン",
+    continue_journey: "私の旅を続ける",
+    yants_word: "ヤント",
+    approach_respect: "敬意を持って",
+    disclaimer: "意味は流派、アジャルン、寺院によって異なります。このアプリは指南です — 宣言ではありません。最終的なデザインと配置は、常に資格のある実践者と確認してください。",
+    // Elements
+    elem_earth: "地", elem_water: "水", elem_fire: "火", elem_air: "風",
+    elem_earth_desc: "基礎 · 根 · あなたが守るもの",
+    elem_water_desc: "深さ · 直感 · あなたを流れるもの",
+    elem_fire_desc: "推進力 · 勇気 · あなたの中で燃えるもの",
+    elem_air_desc: "ビジョン · 自由 · あなたが向かう先",
+    // Offerings
+    off_protection: "守護", off_fortune: "幸運", off_courage: "勇気",
+    off_love: "愛と魅力", off_wisdom: "知恵", off_travel: "安全な旅",
+    off_discipline: "規律", off_transformation: "変容", off_success: "成功",
+    // Body Areas
+    area_upper_back: "上背部", area_center_back: "背中中央", area_neck_spine: "首 / 脊椎",
+    area_shoulder: "肩", area_chest: "胸", area_upper_arm: "上腕",
+    area_forearm: "前腕", area_thigh: "大腿", area_calf: "ふくらはぎ",
+    // Quiz Nav
+    back: "← 戻る", continue_btn: "続ける →", reveal_yants: "ヤントを公開する",
+    of_word: "の", selected: "選択済み", select_at_least: "少なくとも選択",
+    areas_selected: "エリア選択済み",
+    // Questions
+    q_path: "この道をどのように歩みたいですか?",
+    q_path_sub: "これはあなたが受け取る指南の形を決めます。",
+    q_path_opt1: "祖先の系譜に従うデザインを求めています — 伝統的な配置、伝統的な意味",
+    q_path_opt2: "個人的な象徴的な錨として機能するデザインを求めています — 意味は重要ですが、私の条件で",
+    q_path_opt3: "まだ学んでいる途中です — 導いてください、耳を傾けます",
+    q_earth: "あなたの足下の大地は何ですか?",
+    q_earth_sub: "地は問います: あなたは何の上に立っていますか?",
+    q_earth_opt1: "私の人々 — 彼らのためなら何でもしたい人たち",
+    q_earth_opt2: "私自身の両手 — 私が築いたもの、そして生き残ったもの",
+    q_earth_opt3: "何か古いもの — 伝統、系譜、私自身より深い根",
+    q_earth_opt4: "正直に言えば、まだ築いている途中",
+    q_water: "あなたの表面下には何が流れていますか?",
+    q_water_sub: "水は問います: あなたは何を抱えていますか、他の人には見えないもの?",
+    q_water_opt1: "深い直感 — 起こる前に物事を感じます",
+    q_water_opt2: "古い痛み — 手放すことを学んでいます",
+    q_water_opt3: "静かな愛 — 見せる以上に深い",
+    q_water_opt4: "落ち着きのなさ — どこか新しい場所へと私を引く流れ",
+    q_fire: "火を通して歩むことができることは何ですか?",
+    q_fire_sub: "火は問います: 何があなたを危険にしますか — 最善の意味で?",
+    q_fire_opt1: "私が愛する人々 — ためらうことなく",
+    q_fire_opt2: "私自身の自由 — 檻に入ることを拒否します",
+    q_fire_opt3: "まだ築いていないもの — 私だけが見ることのできるビジョン",
+    q_fire_opt4: "何が正しいか — たとえそれが私に代価を払わせても、正義のために戦います",
+    q_air: "目を閉じてください。何が見えますか?",
+    q_air_sub: "風は問います: あなたは何に向かっていますか?",
+    q_air_opt1: "静寂 — 私が経験したすべての後の平和",
+    q_air_opt2: "豊かさ — 人生を良いもので満たしたい",
+    q_air_opt3: "つながり — 本当に見られ、深く知られること",
+    q_air_opt4: "未知のもの — まだ行ったことのない場所",
+    q_offerings: "テーブルに供え物を置いてください。",
+    q_offerings_sub: "あなたのヤントに込めたい2～3つの意図を選んでください。",
+    q_balance: "どの要素がもっと必要ですか?",
+    q_balance_sub: "あなたが何かではなく — 欠けているもの。ヤントが隙間を埋めます。",
+    q_balance_opt1: "地 — 地盤、根、私の下の確かなもの",
+    q_balance_opt2: "水 — もう一度感じたい、手放したい、変わりたい",
+    q_balance_opt3: "火 — 勇気、力、ついに行動する意志",
+    q_balance_opt4: "風 — 軽さ、ビジョン、呼吸する空間",
+    q_placement: "これがあなたの体のどこに属すると感じますか?",
+    q_placement_sub: "開かれた領域をタップしてください。複数選択できます。",
+    q_discretion: "これはあなたとインクの間に留まる必要がありますか?",
+    q_discretion_sub: "判断ありません — 実用的な必要性が正しい選択を形作ります。",
+    q_discretion_opt1: "はい — 簡単に隠すことができるべき",
+    q_discretion_opt2: "時々見えることは気になりません",
+    q_discretion_opt3: "見えるようにしたい — これは私の一部です",
+    q_collage: "1つのヤント、それとも複数?",
+    q_collage_sub: "多くの人々は何年にもわたって神聖な身体図を築きます。",
+    q_collage_opt1: "1つの完璧なヤント — 単数で意味深い",
+    q_collage_opt2: "私のコレクションを始めるための基礎",
+    q_collage_opt3: "完全なコラージュが欲しい — 大きく考えています",
+    q_collage_opt4: "まだ確信が持てない — 共鳴するものを見せてください",
+    // Reading
+    your_manifestation: "あなたの顕現",
+    your_top_yants: "あなたのトップ・ヤント",
+    tap_details: "ヤントをタップして詳細を見てください",
+    your_offerings: "あなたの供え物",
+    explore_library: "完全なライブラリを見る →",
+    share_reading: "あなたのリーディングを共有する",
+    copied: "✓ コピーしました",
+    primary_element_is: "あなたの主要要素は",
+    with_strong: "強い",
+    influence: "影響力を持つ",
+    reading_earth: "あなたは根を張っています — 重要なものにしっかり、世界が揺れるときに安定しています。",
+    reading_water: "あなたは深く流れています — 感じ、変わり、他の人には見えない流れを運びます。",
+    reading_fire: "あなたは燃えています — 勇気、推進力、消えることを拒否する炎。",
+    reading_air: "あなたは向かっています — 常に上を、外を、あり得たはずのものへ見つめています。",
+    combo_earth_water: "根を張るが流動的。重要なもので固く守りながら、あなたに奉仕しないものを手放します。",
+    combo_earth_fire: "堅実で激しい。山の強さと信念の炎で守ります。",
+    combo_earth_air: "根を張るが広がる。あなたの根は深いが、ビジョンは遠い。",
+    combo_water_fire: "深さが推進力に出会う。すべてを感じ、それを止められない前進に導きます。",
+    combo_water_air: "直感的で自由。他の人が見落とすものを感じ、誰も感じることができない流れに従います。",
+    combo_fire_air: "明るく燃えて高く向かう。純粋な野心はビジョンと開放性で和らげられます。",
+    // Library
+    reading_complete: "リーディング完了",
+    your_yant_library: "あなたのヤント・ライブラリ",
+    design_library: "デザイン・ライブラリ",
+    in_collection: "コレクション内",
+    total_designs: "デザイン合計",
+    my_journey: "私の旅",
+    view_collection: "コレクションを見る",
+    start_over: "もう一度始める",
+    for_you: "あなたへ",
+    all_n_designs: "すべてのデザイン",
+    cat_all: "すべてのデザイン", cat_geometric: "幾何学的", cat_animal: "動物精神", cat_deity: "神仏", cat_nature: "自然",
+    click_to_learn: "デザインをクリックして詳しく知る · + 追加を使ってコレクションを構築",
+    in_collection_btn: "✓ コレクション内", add_btn: "+ 追加",
+    // Modal
+    placement_label: "配置", energy_label: "エネルギー", visibility_label: "視認性", size_label: "サイズ",
+    vis_hidden: "簡単に隠せる", vis_semi: "部分的に隠せる", vis_visible: "見える",
+    design_word: "デザイン", collage_note: "コラージュノート",
+    see_photos: "本物のタットゥー写真を見る →",
+    mark_journey: "あなたの旅を記す",
+    journey_have: "✓ 持っています", journey_next: "次に取得", journey_someday: "いつか",
+    remove_collection: "コレクションから削除", add_to_collection: "コレクションに追加",
+    // Collage
+    your_sacred_collection: "あなたの神聖なコレクション",
+    yants_selected: "選択されたヤント",
+    no_designs_yet: "まだデザインは選択されていません。戻ってヤントを選んでください。",
+    placement_collage_notes: "配置とコラージュノート",
+    the_next_step: "次のステップ",
+    bring_to_master: "このリーディングをマスターに持ってきてください",
+    next_step_desc: "あなたの顕現は完了しました — しかしヤントは資格のあるアジャルンまたは僧侶によって与えられるまではあなたのものではありません。あなたのリーディングを共有し、あなたの選択を議論し、敬意と意図を持って祝福を受けてください。",
+    copy_consultation: "相談リクエストをコピー", share_collection: "コレクションを共有",
+    sacred_not_decorative: "サクヤントは神聖です — 装飾的ではありません。",
+    seek_legitimate: "タイの正当な僧侶またはアジャルン・マスターを探してください。",
+    approach_humility: "謙虚さ、供え物、そして誠実な意図を持って。",
+    meanings_vary: "意味は流派、アジャルン、寺院によって異なります。",
+    app_guides: "このアプリは指南です — 絶対的な真実を宣言するものではありません。",
+    remove_btn: "削除", view_details: "詳細を見る", back_to_library: "← ライブラリに戻る",
+    // Journey
+    my_sacred_journey: "私の神聖な旅",
+    your_sak_yant_plan: "あなたのサクヤント計画",
+    received_word: "受取", planned_word: "計画中", someday_word: "いつか",
+    library_btn: "← ライブラリ", collection_btn: "コレクション",
+    filter_all: "すべて", filter_received: "受け取ったもの ✓", filter_next: "次に取得", filter_someday: "いつか",
+    journey_empty: "あなたの旅はここから始まります。ライブラリを見て、持っている、次に欲しい、または夢見ているヤントを記してください。",
+    browse_library: "ライブラリを見る",
+    have_it: "✓ 持っています", next_btn: "次へ", someday_btn: "いつか",
+    add_note: "+ 個人的なメモを追加",
+    note_placeholder: "個人的なメモを追加 — いつ取得したか、誰から受け取ったか、どう感じたか...",
+    note_save_hint: "Enterキーを押して保存 · Shift+Enterで新しい行",
+    journey_summary: "旅のサマリー",
+    stat_received: "受け取ったもの", stat_getting_next: "次に取得", stat_someday: "いつか", stat_total: "計画済み合計",
+    language: "言語",
+  },
+  zh: {
+    // Intro
+    sacred_geometry: "神圣几何 · 古老祝福",
+    app_title: "圣纹卦象",
+    app_subtitle: "纹身指南 & 设计库",
+    intro_desc: "圣纹是来自泰国、柬埔寨和老挝的神圣几何纹身——由僧侣和阿赞大师祝福，承载真实的精神重量。",
+    intro_sub: "走过四大元素，献上你的意图，接收个性化的卦象显现。这段旅程大约需要两分钟。",
+    begin_reading: "开始占卜",
+    browse_all: "查看全部",
+    designs: "设计",
+    continue_journey: "继续我的旅程",
+    yants_word: "卦象",
+    approach_respect: "恭敬对待",
+    disclaimer: "意义因流派、阿赞和寺庙而异。此应用提供指导——并非绝对声明。最终设计和位置应始终与合格的从业者确认。",
+    // Elements
+    elem_earth: "土", elem_water: "水", elem_fire: "火", elem_air: "风",
+    elem_earth_desc: "基础 · 根源 · 你所守护的",
+    elem_water_desc: "深度 · 直觉 · 流经你的",
+    elem_fire_desc: "驱动 · 勇气 · 在你心中燃烧的",
+    elem_air_desc: "视野 · 自由 · 你所追求的",
+    // Offerings
+    off_protection: "守护", off_fortune: "好运", off_courage: "勇气",
+    off_love: "爱与魅力", off_wisdom: "智慧", off_travel: "安全旅程",
+    off_discipline: "纪律", off_transformation: "蜕变", off_success: "成功",
+    // Body Areas
+    area_upper_back: "背部上方", area_center_back: "背部中央", area_neck_spine: "颈部 / 脊椎",
+    area_shoulder: "肩膀", area_chest: "胸部", area_upper_arm: "上臂",
+    area_forearm: "前臂", area_thigh: "大腿", area_calf: "小腿",
+    // Quiz Nav
+    back: "← 返回", continue_btn: "继续 →", reveal_yants: "揭示我的卦象",
+    of_word: "的", selected: "已选择", select_at_least: "至少选择",
+    areas_selected: "个区域已选择",
+    // Questions
+    q_path: "你想如何踏上这条路?",
+    q_path_sub: "这决定了你将获得的指导形式。",
+    q_path_opt1: "我寻求遵循祖传世系的设计——传统位置、传统含义",
+    q_path_opt2: "我寻求作为个人象征性锚点的设计——意义很重要，但以我的条件",
+    q_path_opt3: "我还在学习——指导我，我会倾听",
+    q_earth: "你脚下的土地是什么?",
+    q_earth_sub: "土问道：你站在什么之上?",
+    q_earth_opt1: "我的人民——我愿为之做一切的人",
+    q_earth_opt2: "我自己的双手——我所建造的和我所生存的",
+    q_earth_opt3: "什么古老的东西——传统、血统、比我更深的根源",
+    q_earth_opt4: "说实话，我还在建造中",
+    q_water: "在你的表面下流动着什么?",
+    q_water_sub: "水问道：你承载着什么别人看不到的?",
+    q_water_opt1: "深层直觉——我在事情发生前就感受到它们",
+    q_water_opt2: "陈旧的痛苦——我正在学会放下它",
+    q_water_opt3: "深沉的爱——比我表现的更深",
+    q_water_opt4: "不安——一股将我拉往新地方的潮流",
+    q_fire: "你会为什么走过火?",
+    q_fire_sub: "火问道：什么让你危险——以最好的方式?",
+    q_fire_opt1: "我爱的人——毫不犹豫",
+    q_fire_opt2: "我自己的自由——我拒绝被困",
+    q_fire_opt3: "我还未建造的东西——只有我能看见的愿景",
+    q_fire_opt4: "正义的事——即使代价高昂，我也为之战斗",
+    q_air: "闭上眼睛。你看到了什么?",
+    q_air_sub: "风问道：你正在追求什么?",
+    q_air_opt1: "宁静——经历一切后的平和",
+    q_air_opt2: "丰盛——我想生活充满美好",
+    q_air_opt3: "联系——被真正看见和深深理解",
+    q_air_opt4: "未知——某个我从未去过的地方",
+    q_offerings: "将供品放在桌上。",
+    q_offerings_sub: "选择2到3个你希望卦象承载的意图。",
+    q_balance: "你需要哪个元素更多?",
+    q_balance_sub: "不是你是什么——而是缺失的。卦象填补空缺。",
+    q_balance_opt1: "土——我需要扎根、根基、我下方坚实的东西",
+    q_balance_opt2: "水——我需要再次感受、放下、蜕变",
+    q_balance_opt3: "火——我需要勇气、力量、终于行动的意志",
+    q_balance_opt4: "风——我需要轻盈、视野、呼吸的空间",
+    q_placement: "你感到这属于你身体的哪个位置?",
+    q_placement_sub: "点击你愿意的区域。你可以选择多个。",
+    q_discretion: "这是否需要保留在你和墨水之间?",
+    q_discretion_sub: "没有评判——实际需求决定了正确的选择。",
+    q_discretion_opt1: "是的——应该容易隐藏",
+    q_discretion_opt2: "有时显露我不在意",
+    q_discretion_opt3: "我希望它显眼——这是我的一部分",
+    q_collage: "一个卦象，还是多个?",
+    q_collage_sub: "许多人多年来建造一个神圣的身体地图。",
+    q_collage_opt1: "一个完美的卦象——单一而有意义",
+    q_collage_opt2: "开始我的收藏的基础作品",
+    q_collage_opt3: "我想要完整的拼贴——我在想大",
+    q_collage_opt4: "还不确定——展示什么与我共鸣",
+    // Reading
+    your_manifestation: "你的显现",
+    your_top_yants: "你的顶级卦象",
+    tap_details: "点击任何卦象查看完整详情",
+    your_offerings: "你的供品",
+    explore_library: "探索完整库 →",
+    share_reading: "分享你的占卜",
+    copied: "✓ 已复制",
+    primary_element_is: "你的主要元素是",
+    with_strong: "具有强大的",
+    influence: "影响力",
+    reading_earth: "你扎根了——对重要事物坚定，当世界震动时保持稳定。",
+    reading_water: "你流淌深沉——感受、蜕变、承载他人看不见的潮流。",
+    reading_fire: "你燃烧——勇气、驱动、拒绝熄灭的火焰。",
+    reading_air: "你上升——总是向上看、向外看、向可能的东西看。",
+    combo_earth_water: "扎根但流动。你坚守重要的事物，同时放下无益之物。",
+    combo_earth_fire: "坚实而凶悍。你以山的力量和信念的热度守护。",
+    combo_earth_air: "扎根而开阔。你的根很深，但视野很远。",
+    combo_water_fire: "深度遇见驱动。你感受一切并将其引导成不可阻挡的前进。",
+    combo_water_air: "直觉而自由。你感受他人遗漏的，追随无人能感受的潮流。",
+    combo_fire_air: "明亮燃烧，高远追求。纯粹的雄心被视野和开放性温和。",
+    // Library
+    reading_complete: "占卜完成",
+    your_yant_library: "你的卦象库",
+    design_library: "设计库",
+    in_collection: "在收藏中",
+    total_designs: "总设计数",
+    my_journey: "我的旅程",
+    view_collection: "查看收藏",
+    start_over: "重新开始",
+    for_you: "为你",
+    all_n_designs: "所有设计",
+    cat_all: "所有设计", cat_geometric: "几何", cat_animal: "动物精神", cat_deity: "神灵", cat_nature: "自然",
+    click_to_learn: "点击任何设计了解更多 · 使用 + 添加来构建你的收藏",
+    in_collection_btn: "✓ 在收藏中", add_btn: "+ 添加",
+    // Modal
+    placement_label: "位置", energy_label: "能量", visibility_label: "可见性", size_label: "大小",
+    vis_hidden: "容易隐藏", vis_semi: "半隐藏", vis_visible: "可见",
+    design_word: "设计", collage_note: "拼贴注记",
+    see_photos: "查看真实纹身照片 →",
+    mark_journey: "标记你的旅程",
+    journey_have: "✓ 我有这个", journey_next: "获取下一个", journey_someday: "总有一天",
+    remove_collection: "从收藏中删除", add_to_collection: "添加到收藏",
+    // Collage
+    your_sacred_collection: "你的神圣收藏",
+    yants_selected: "已选择的卦象",
+    no_designs_yet: "还没有选择设计。返回并选择你的卦象。",
+    placement_collage_notes: "位置与拼贴注记",
+    the_next_step: "下一步",
+    bring_to_master: "把这个占卜带给大师",
+    next_step_desc: "你的显现已完成——但卦象不属于你，直到它由合格的阿赞或僧侣给予。分享你的占卜，讨论你的选择，并以敬意和真诚的意图接受祝福。",
+    copy_consultation: "复制咨询请求", share_collection: "分享收藏",
+    sacred_not_decorative: "圣纹是神圣的——不是装饰性的。",
+    seek_legitimate: "在泰国寻求合法的僧侣或阿赞大师。",
+    approach_humility: "以谦逊、供品和真诚的意图。",
+    meanings_vary: "意义因流派、阿赞和寺庙而异。",
+    app_guides: "此应用提供指导——它不声称绝对真理。",
+    remove_btn: "删除", view_details: "查看详情", back_to_library: "← 返回库",
+    // Journey
+    my_sacred_journey: "我的神圣旅程",
+    your_sak_yant_plan: "你的圣纹计划",
+    received_word: "已获得", planned_word: "已计划", someday_word: "总有一天",
+    library_btn: "← 库", collection_btn: "收藏",
+    filter_all: "全部", filter_received: "已获得 ✓", filter_next: "获取下一个", filter_someday: "总有一天",
+    journey_empty: "你的旅程从这里开始。浏览库并标记你拥有、想要下一个或梦想的卦象。",
+    browse_library: "浏览库",
+    have_it: "✓ 我有", next_btn: "下一个", someday_btn: "总有一天",
+    add_note: "+ 添加个人注记",
+    note_placeholder: "添加个人注记——何时获得、谁给的、感受如何...",
+    note_save_hint: "按Enter保存 · Shift+Enter新行",
+    journey_summary: "旅程总结",
+    stat_received: "已获得", stat_getting_next: "获取下一个", stat_someday: "总有一天", stat_total: "计划总数",
+    language: "语言",
+  },
+  ko: {
+    // Intro
+    sacred_geometry: "신성한 기하학 · 고대의 축복",
+    app_title: "삭얀뜨 오라클",
+    app_subtitle: "문신 안내 & 디자인 도서관",
+    intro_desc: "삭얀뜨는 태국, 캄보디아, 라오스에서 비롯된 신성한 기하학적 문신이며, 승려와 아잔 마스터의 축복을 받아 진정한 영적 무게를 지닙니다.",
+    intro_sub: "네 가지 원소를 거치며 걷고 당신의 의도를 드린 후 개인화된 얀뜨의 현현을 받으세요. 이 여정은 약 2분 소요됩니다.",
+    begin_reading: "리딩 시작",
+    browse_all: "모두 보기",
+    designs: "디자인",
+    continue_journey: "내 여정 계속",
+    yants_word: "얀뜨",
+    approach_respect: "존경으로 접근",
+    disclaimer: "의미는 계파, 아잔, 사원에 따라 다릅니다. 이 앱은 지침을 제공합니다 — 절대적 선언이 아닙니다. 최종 디자인과 배치는 항상 자격 있는 수행자와 확인하세요.",
+    // Elements
+    elem_earth: "흙", elem_water: "물", elem_fire: "불", elem_air: "바람",
+    elem_earth_desc: "기초 · 뿌리 · 당신이 지키는 것",
+    elem_water_desc: "깊이 · 직관 · 당신을 흐르는 것",
+    elem_fire_desc: "추진력 · 용기 · 당신 안에서 타오르는 것",
+    elem_air_desc: "비전 · 자유 · 당신이 향하는 것",
+    // Offerings
+    off_protection: "수호", off_fortune: "행운", off_courage: "용기",
+    off_love: "사랑과 매력", off_wisdom: "지혜", off_travel: "안전한 여행",
+    off_discipline: "규율", off_transformation: "변화", off_success: "성공",
+    // Body Areas
+    area_upper_back: "상부 등", area_center_back: "등 중앙", area_neck_spine: "목 / 척추",
+    area_shoulder: "어깨", area_chest: "가슴", area_upper_arm: "상완",
+    area_forearm: "전완", area_thigh: "대퇴", area_calf: "종아리",
+    // Quiz Nav
+    back: "← 뒤로", continue_btn: "계속 →", reveal_yants: "얀뜨 공개",
+    of_word: "의", selected: "선택됨", select_at_least: "최소 선택",
+    areas_selected: "영역 선택됨",
+    // Questions
+    q_path: "어떻게 이 길을 걷고 싶으신가요?",
+    q_path_sub: "이것은 받을 지침의 형태를 결정합니다.",
+    q_path_opt1: "조상의 계파를 따르는 디자인을 원합니다 — 전통적 배치, 전통적 의미",
+    q_path_opt2: "개인적 상징적 앵커로 작용하는 디자인을 원합니다 — 의미는 중요하지만 내 조건으로",
+    q_path_opt3: "아직 배우는 중입니다 — 저를 이끌어주세요, 귀를 기울이겠습니다",
+    q_earth: "당신 발 아래의 땅은 무엇인가요?",
+    q_earth_sub: "흙이 묻습니다: 당신은 무엇 위에 서 있나요?",
+    q_earth_opt1: "내 사람들 — 무엇이든 할 수 있는 사람들",
+    q_earth_opt2: "내 두 손 — 내가 지은 것과 생존한 것",
+    q_earth_opt3: "뭔가 고대의 것 — 전통, 계보, 나보다 더 깊은 뿌리",
+    q_earth_opt4: "솔직히 말하면 아직 짓는 중입니다",
+    q_water: "당신 표면 아래 무엇이 흐르나요?",
+    q_water_sub: "물이 묻습니다: 당신은 다른 사람들이 보지 못하는 것을 무엇을 안고 있나요?",
+    q_water_opt1: "깊은 직관 — 일이 일어나기 전에 느낍니다",
+    q_water_opt2: "오래된 상처 — 내려놓기를 배우고 있습니다",
+    q_water_opt3: "조용한 사랑 — 보이는 것보다 더 깊은",
+    q_water_opt4: "불안 — 나를 어딘가 새로운 곳으로 끌어당기는 흐름",
+    q_fire: "당신은 무엇을 위해 불을 통해 걸을 수 있나요?",
+    q_fire_sub: "불이 묻습니다: 당신을 위험하게 만드는 것은 무엇인가요 — 최고의 방식으로?",
+    q_fire_opt1: "내가 사랑하는 사람들 — 망설임 없이",
+    q_fire_opt2: "나 자신의 자유 — 갇히기를 거부합니다",
+    q_fire_opt3: "아직 짓지 않은 것 — 오직 내가만 볼 수 있는 비전",
+    q_fire_opt4: "옳은 것 — 대가가 커도 정의를 위해 싸웁니다",
+    q_air: "눈을 감으세요. 무엇이 보이나요?",
+    q_air_sub: "바람이 묻습니다: 당신은 무엇을 향하고 있나요?",
+    q_air_opt1: "고요함 — 내가 겪은 모든 것 이후의 평화",
+    q_air_opt2: "풍요 — 인생이 좋은 것으로 넘치길 원합니다",
+    q_air_opt3: "연결 — 진정으로 보여지고 깊이 알려지는 것",
+    q_air_opt4: "미지의 것 — 아직 가본 적 없는 곳",
+    q_offerings: "테이블에 제물을 올려놓으세요.",
+    q_offerings_sub: "당신의 얀뜨가 지니길 원하는 2~3개의 의도를 선택하세요.",
+    q_balance: "어느 원소가 더 필요한가요?",
+    q_balance_sub: "당신이 무엇인지가 아니라 — 빠진 것. 얀뜨가 공백을 채웁니다.",
+    q_balance_opt1: "흙 — 뿌리 내림, 근간, 내 아래 확실한 것이 필요합니다",
+    q_balance_opt2: "물 — 다시 느끼고, 내려놓고, 변화하고 싶습니다",
+    q_balance_opt3: "불 — 용기, 힘, 마침내 행동할 의지가 필요합니다",
+    q_balance_opt4: "바람 — 가벼움, 비전, 숨 쉴 공간이 필요합니다",
+    q_placement: "이것이 당신 몸의 어디에 속한다고 느끼나요?",
+    q_placement_sub: "열린 영역을 탭하세요. 여러 개를 선택할 수 있습니다.",
+    q_discretion: "이것이 당신과 먹물 사이에만 있어야 하나요?",
+    q_discretion_sub: "판단 없습니다 — 현실적 필요가 올바른 선택을 결정합니다.",
+    q_discretion_opt1: "예 — 숨기기 쉬워야 합니다",
+    q_discretion_opt2: "가끔 보여도 상관없습니다",
+    q_discretion_opt3: "보이길 원합니다 — 이것이 나의 일부입니다",
+    q_collage: "하나의 얀뜨, 아니면 여러 개?",
+    q_collage_sub: "많은 사람들이 수년에 걸쳐 신성한 신체 지도를 구축합니다.",
+    q_collage_opt1: "하나의 완벽한 얀뜨 — 단수이고 의미 있는",
+    q_collage_opt2: "컬렉션을 시작하기 위한 기초 조각",
+    q_collage_opt3: "전체 콜라주를 원합니다 — 크게 생각 중입니다",
+    q_collage_opt4: "아직 확실하지 않습니다 — 공명하는 것을 보여주세요",
+    // Reading
+    your_manifestation: "당신의 현현",
+    your_top_yants: "당신의 주요 얀뜨",
+    tap_details: "얀뜨를 탭하여 전체 세부 정보 보기",
+    your_offerings: "당신의 제물",
+    explore_library: "전체 도서관 탐색 →",
+    share_reading: "당신의 리딩 공유",
+    copied: "✓ 복사됨",
+    primary_element_is: "당신의 주요 원소는",
+    with_strong: "강한",
+    influence: "영향력을 갖춘",
+    reading_earth: "당신은 뿌리를 내렸습니다 — 중요한 것에 묵직하고, 세상이 흔들려도 안정적입니다.",
+    reading_water: "당신은 깊게 흐릅니다 — 느끼고, 변화하고, 다른 사람들이 보지 못하는 흐름을 운반합니다.",
+    reading_fire: "당신은 타오릅니다 — 용기, 추진력, 꺼지기를 거부하는 불꽃입니다.",
+    reading_air: "당신은 향합니다 — 항상 위로, 바깥으로, 될 수 있는 것을 봅니다.",
+    combo_earth_water: "뿌리 내렸지만 흐릅니다. 중요한 것은 붙들고 당신에게 도움이 되지 않는 것은 놓습니다.",
+    combo_earth_fire: "견고하고 맹렬합니다. 산의 힘과 신념의 열로 보호합니다.",
+    combo_earth_air: "뿌리 내렸지만 확장합니다. 당신의 뿌리는 깊지만 비전은 멀리 갑니다.",
+    combo_water_fire: "깊이가 추진력을 만납니다. 모든 것을 느끼고 그것을 멈출 수 없는 전진으로 이끕니다.",
+    combo_water_air: "직관적이고 자유롭습니다. 다른 사람들이 놓친 것을 감지하고 누구도 느낄 수 없는 흐름을 따릅니다.",
+    combo_fire_air: "밝게 타오르고 높이 향합니다. 순수한 야심이 비전과 개방성으로 완화됩니다.",
+    // Library
+    reading_complete: "리딩 완료",
+    your_yant_library: "당신의 얀뜨 도서관",
+    design_library: "디자인 도서관",
+    in_collection: "컬렉션에",
+    total_designs: "총 디자인",
+    my_journey: "내 여정",
+    view_collection: "컬렉션 보기",
+    start_over: "다시 시작",
+    for_you: "당신을 위해",
+    all_n_designs: "모든 디자인",
+    cat_all: "모든 디자인", cat_geometric: "기하학적", cat_animal: "동물 정신", cat_deity: "신령", cat_nature: "자연",
+    click_to_learn: "디자인을 클릭하여 자세히 알아보기 · + 추가를 사용하여 컬렉션 구축",
+    in_collection_btn: "✓ 컬렉션에", add_btn: "+ 추가",
+    // Modal
+    placement_label: "배치", energy_label: "에너지", visibility_label: "가시성", size_label: "크기",
+    vis_hidden: "숨기기 쉬움", vis_semi: "부분적 숨김", vis_visible: "보임",
+    design_word: "디자인", collage_note: "콜라주 노트",
+    see_photos: "실제 문신 사진 보기 →",
+    mark_journey: "당신의 여정을 표시",
+    journey_have: "✓ 가지고 있음", journey_next: "다음에 얻기", journey_someday: "언젠가",
+    remove_collection: "컬렉션에서 제거", add_to_collection: "컬렉션에 추가",
+    // Collage
+    your_sacred_collection: "당신의 신성한 컬렉션",
+    yants_selected: "선택된 얀뜨",
+    no_designs_yet: "아직 선택된 디자인이 없습니다. 돌아가 당신의 얀뜨를 선택하세요.",
+    placement_collage_notes: "배치 및 콜라주 노트",
+    the_next_step: "다음 단계",
+    bring_to_master: "이 리딩을 마스터에게 가져가기",
+    next_step_desc: "당신의 현현은 완료되었습니다 — 하지만 얀뜨는 자격 있는 아잔이나 승려에게 받을 때까지 당신의 것이 아닙니다. 당신의 리딩을 공유하고, 당신의 선택을 논의하고, 존경과 진정한 의도로 축복을 받으세요.",
+    copy_consultation: "상담 요청 복사", share_collection: "컬렉션 공유",
+    sacred_not_decorative: "삭얀뜨는 신성합니다 — 장식적이지 않습니다.",
+    seek_legitimate: "태국에서 합법적인 승려나 아잔 마스터를 찾으세요.",
+    approach_humility: "겸손, 제물, 그리고 진정한 의도로.",
+    meanings_vary: "의미는 계파, 아잔, 사원에 따라 다릅니다.",
+    app_guides: "이 앱은 지침을 제공합니다 — 절대적 진실을 선언하지 않습니다.",
+    remove_btn: "제거", view_details: "세부 정보 보기", back_to_library: "← 도서관으로",
+    // Journey
+    my_sacred_journey: "내 신성한 여정",
+    your_sak_yant_plan: "당신의 삭얀뜨 계획",
+    received_word: "받음", planned_word: "계획됨", someday_word: "언젠가",
+    library_btn: "← 도서관", collection_btn: "컬렉션",
+    filter_all: "모두", filter_received: "받음 ✓", filter_next: "다음에 받기", filter_someday: "언젠가",
+    journey_empty: "당신의 여정은 여기서 시작됩니다. 도서관을 둘러보고 가지고 있는, 다음으로 원하는, 또는 꿈꾸는 얀뜨를 표시하세요.",
+    browse_library: "도서관 둘러보기",
+    have_it: "✓ 가지고 있음", next_btn: "다음", someday_btn: "언젠가",
+    add_note: "+ 개인 노트 추가",
+    note_placeholder: "개인 노트 추가 — 언제 받았는지, 누가 주었는지, 어떤 기분이었는지...",
+    note_save_hint: "Enter를 눌러 저장 · Shift+Enter는 새 줄",
+    journey_summary: "여정 요약",
+    stat_received: "받음", stat_getting_next: "다음에 받기", stat_someday: "언젠가", stat_total: "계획된 총합",
+    language: "언어",
+  }
+,
+  de: {
+    // Intro
+    sacred_geometry: "Heilige Geometrie · Alter Segen",
+    app_title: "Sak Yant Orakel",
+    app_subtitle: "Tätowierungs-Führung & Design-Bibliothek",
+    intro_desc: "Sak Yants sind heilige geometrische Tätowierungen aus Thailand, Kambodscha und Laos — gesegnet von Mönchen und Ajarn-Meistern, mit echter spiritueller Kraft geladen.",
+    intro_sub: "Gehe durch die vier Elemente, bringe deine Absichten dar und empfange deine persönliche Yant-Manifestation. Die Reise dauert etwa zwei Minuten.",
+    begin_reading: "Lesung Beginnen",
+    browse_all: "Alle Ansehen",
+    designs: "Designs",
+    continue_journey: "Meine Reise Fortsetzen",
+    yants_word: "Yants",
+    approach_respect: "Mit Respekt Nähern",
+    disclaimer: "Bedeutungen unterscheiden sich nach Linie, Ajarn und Tempel. Diese App leitet an — sie erklärt nicht absolut. Endgültiges Design und Platzierung sollten immer mit einem qualifizierten Praktiker bestätigt werden.",
+    // Elements
+    elem_earth: "Erde", elem_water: "Wasser", elem_fire: "Feuer", elem_air: "Luft",
+    elem_earth_desc: "Fundament · Wurzeln · Das, was du schützt",
+    elem_water_desc: "Tiefe · Intuition · Das, was durch dich fließt",
+    elem_fire_desc: "Antrieb · Mut · Das, was in dir brennt",
+    elem_air_desc: "Vision · Freiheit · Das, worauf du hinarbeitest",
+    // Offerings
+    off_protection: "Schutz", off_fortune: "Glück", off_courage: "Mut",
+    off_love: "Liebe & Ausstrahlung", off_wisdom: "Weisheit", off_travel: "Sichere Reisen",
+    off_discipline: "Disziplin", off_transformation: "Umwandlung", off_success: "Erfolg",
+    // Body Areas
+    area_upper_back: "Oberer Rücken", area_center_back: "Mittlerer Rücken", area_neck_spine: "Nacken / Wirbelsäule",
+    area_shoulder: "Schulter", area_chest: "Brust", area_upper_arm: "Oberarm",
+    area_forearm: "Unterarm", area_thigh: "Oberschenkel", area_calf: "Wade",
+    // Quiz Nav
+    back: "← Zurück", continue_btn: "Weiter →", reveal_yants: "Meine Yants Offenbaren",
+    of_word: "von", selected: "ausgewählt", select_at_least: "wähle mindestens",
+    areas_selected: "Bereiche ausgewählt",
+    // Questions
+    q_path: "Wie möchtest du diesen Weg gehen?",
+    q_path_sub: "Dies prägt die Führung, die du erhältst.",
+    q_path_opt1: "Ich suche ein Design, das die ancestrale Linie folgt — traditionelle Platzierung, traditionelle Bedeutung",
+    q_path_opt2: "Ich suche ein Design, das als mein persönlicher symbolischer Anker dient — Bedeutung zählt, aber nach meinen Bedingungen",
+    q_path_opt3: "Ich lerne noch — führe mich und ich werde hören",
+    q_earth: "Was ist der Grund unter deinen Füßen?",
+    q_earth_sub: "Erde fragt: Worauf stellst du dich?",
+    q_earth_opt1: "Mein Volk — diejenigen, für die ich alles tun würde",
+    q_earth_opt2: "Meine eigenen Hände — was ich gebaut und überlebt habe",
+    q_earth_opt3: "Etwas Altes — Tradition, Abstammung, Wurzeln tiefer als ich",
+    q_earth_opt4: "Ehrlich gesagt? Ich baue sie noch",
+    q_water: "Was fließt unter deiner Oberfläche?",
+    q_water_sub: "Wasser fragt: Was trägst du, das andere nicht sehen?",
+    q_water_opt1: "Eine tiefe Intuition — ich fühle Dinge, bevor sie geschehen",
+    q_water_opt2: "Alten Schmerz, den ich lerne loszulassen",
+    q_water_opt3: "Eine stille Liebe, die tiefer läuft als ich zeige",
+    q_water_opt4: "Unruhe — eine Strömung, die mich irgendwohin zieht",
+    q_fire: "Worauf würdest du durchs Feuer gehen?",
+    q_fire_sub: "Feuer fragt: Was macht dich gefährlich — auf beste Weise?",
+    q_fire_opt1: "Die Menschen, die ich liebe — ohne Zögern",
+    q_fire_opt2: "Meine eigene Freiheit — ich weigere mich, eingesperrt zu sein",
+    q_fire_opt3: "Etwas, das ich noch nicht gebaut habe — eine Vision nur ich kann sehen",
+    q_fire_opt4: "Das Richtige — ich kämpfe für Gerechtigkeit, auch wenn es mich kostet",
+    q_air: "Schließe deine Augen. Was siehst du?",
+    q_air_sub: "Luft fragt: Worauf arbeitest du hin?",
+    q_air_opt1: "Stille — Frieden nach allem, das ich durchlebt habe",
+    q_air_opt2: "Überfluss — ich will, dass mein Leben vom Guten überläuft",
+    q_air_opt3: "Verbindung — wirklich gesehen und tiefgreifend gekannt werden",
+    q_air_opt4: "Das Unbekannte — irgendwohin, wo ich noch nicht war",
+    q_offerings: "Lege deine Gaben auf den Tisch.",
+    q_offerings_sub: "Wähle 2 oder 3 Absichten, die dein Yant tragen soll.",
+    q_balance: "Welches Element brauchst du mehr?",
+    q_balance_sub: "Nicht, was du bist — was fehlt. Das Yant füllt die Lücke.",
+    q_balance_opt1: "Erde — Ich brauche Halt, Wurzeln, etwas Festes unter mir",
+    q_balance_opt2: "Wasser — Ich brauche wieder zu fühlen, loszulassen, mich umzuwandeln",
+    q_balance_opt3: "Feuer — Ich brauche Mut, Kraft, den Willen endlich zu handeln",
+    q_balance_opt4: "Luft — Ich brauche Leichtigkeit, Vision, Raum zum Atmen",
+    q_placement: "Wo auf deinem Körper gehört dies hin?",
+    q_placement_sub: "Tippe die Bereiche an, die du offen bist. Du kannst mehrere wählen.",
+    q_discretion: "Muss dies zwischen dir und der Tinte bleiben?",
+    q_discretion_sub: "Kein Urteil — praktische Bedürfnisse prägen die richtige Wahl.",
+    q_discretion_opt1: "Ja — es sollte leicht zu verbergen sein",
+    q_discretion_opt2: "Mir ist es recht, wenn es manchmal sichtbar ist",
+    q_discretion_opt3: "Ich will, dass es sichtbar ist — das ist Teil von mir",
+    q_collage: "Ein Yant oder viele?",
+    q_collage_sub: "Viele Menschen bauen über Jahre eine heilige Körperkarte auf.",
+    q_collage_opt1: "Ein perfektes Yant — einzigartig und bedeutsam",
+    q_collage_opt2: "Ein Grundstück zum Anfang meiner Sammlung",
+    q_collage_opt3: "Ich will eine volle Collage — ich denke groß",
+    q_collage_opt4: "Noch unsicher — zeige mir, was resoniert",
+    // Reading
+    your_manifestation: "Deine Manifestation",
+    your_top_yants: "Deine Top Yants",
+    tap_details: "Tippe ein beliebiges Yant, um vollständige Details zu sehen",
+    your_offerings: "Deine Gaben",
+    explore_library: "Erkunde vollständige Bibliothek →",
+    share_reading: "Teile deine Lesung",
+    copied: "✓ Kopiert",
+    primary_element_is: "Dein Hauptelement ist",
+    with_strong: "mit starkem",
+    influence: "Einfluss",
+    reading_earth: "Du bist verwurzelt — gefestigt in dem, was zählt, stabil wenn die Welt bebt.",
+    reading_water: "Du fließt tief — fühlend, umwandelnd, Strömungen tragend, die andere nicht sehen.",
+    reading_fire: "Du brennst — Mut, Antrieb, eine Flamme, die sich weigert auszugehen.",
+    reading_air: "Du arbeitest hin — immer aufwärts schauend, hinaus, zu dem, was sein könnte.",
+    combo_earth_water: "Verwurzelt doch fließend. Du hältst fest an dem, was zählt, während du loslässt, was dir nicht dient.",
+    combo_earth_fire: "Fest und wild. Du schützt mit der Kraft der Berge und der Hitze der Überzeugung.",
+    combo_earth_air: "Geerdet doch expansiv. Deine Wurzeln gehen tief, aber deine Vision reicht weit.",
+    combo_water_fire: "Tiefe trifft Antrieb. Du fühlst alles und leitest es in unaufhaltsame Vorwärtsbewegung.",
+    combo_water_air: "Intuitiv und frei. Du spürst, was andere vermissen, und folgst Strömungen, die niemand sonst fühlt.",
+    combo_fire_air: "Brennend hell und hoch erreichend. Reine Ehrgeiz gemildert durch Vision und Offenheit.",
+    // Library
+    reading_complete: "Lesung Abgeschlossen",
+    your_yant_library: "Deine Yant-Bibliothek",
+    design_library: "Design-Bibliothek",
+    in_collection: "in Sammlung",
+    total_designs: "Gesamtdesigns",
+    my_journey: "Meine Reise",
+    view_collection: "Sammlung Ansehen",
+    start_over: "Von Vorne Anfangen",
+    for_you: "Für Dich",
+    all_n_designs: "Alle Designs",
+    cat_all: "Alle Designs", cat_geometric: "Geometrisch", cat_animal: "Tiergötter", cat_deity: "Gottheiten", cat_nature: "Natur",
+    click_to_learn: "Klicke ein beliebiges Design zum Lernen · Benutze + Hinzufügen um deine Sammlung aufzubauen",
+    in_collection_btn: "✓ In Sammlung", add_btn: "+ Hinzufügen",
+    // Modal
+    placement_label: "Platzierung", energy_label: "Energie", visibility_label: "Sichtbarkeit", size_label: "Größe",
+    vis_hidden: "Leicht zu verbergen", vis_semi: "Halb verborgen", vis_visible: "Sichtbar",
+    design_word: "Design", collage_note: "Collage-Notiz",
+    see_photos: "Echte Tätowierungs-Fotos Ansehen →",
+    mark_journey: "Markiere deine Reise",
+    journey_have: "✓ Ich Habe Dies", journey_next: "Nächstes", journey_someday: "Eines Tages",
+    remove_collection: "Aus Sammlung Entfernen", add_to_collection: "Zu Sammlung Hinzufügen",
+    // Collage
+    your_sacred_collection: "Deine Heilige Sammlung",
+    yants_selected: "Yants Ausgewählt",
+    no_designs_yet: "Noch keine Designs ausgewählt. Gehe zurück und wähle deine Yants.",
+    placement_collage_notes: "Platzierungs- & Collage-Notizen",
+    the_next_step: "Der Nächste Schritt",
+    bring_to_master: "Bringe diese Lesung zu einem Meister",
+    next_step_desc: "Deine Manifestation ist abgeschlossen — aber das Yant ist nicht dein, bis es von einem qualifizierten Ajarn oder Mönch gegeben wird. Teile deine Lesung, bespreche deine Wahl, und empfange den Segen mit Respekt und Absicht.",
+    copy_consultation: "Kopiere Beratungsanfrage", share_collection: "Teile Sammlung",
+    sacred_not_decorative: "Sak Yants sind heilig — nicht dekorativ.",
+    seek_legitimate: "Suche einen legitimen Mönch oder Ajarn-Meister in Thailand.",
+    approach_humility: "Mit Demut, Gaben und aufrichtiger Absicht nähern.",
+    meanings_vary: "Bedeutungen unterscheiden sich nach Linie, Ajarn und Tempel.",
+    app_guides: "Diese App leitet an — sie erklärt nicht absolute Wahrheit.",
+    remove_btn: "Entfernen", view_details: "Details Ansehen", back_to_library: "← Zurück zur Bibliothek",
+    // Journey
+    my_sacred_journey: "Meine Heilige Reise",
+    your_sak_yant_plan: "Dein Sak Yant Plan",
+    received_word: "erhalten", planned_word: "geplant", someday_word: "eines Tages",
+    library_btn: "← Bibliothek", collection_btn: "Sammlung",
+    filter_all: "Alle", filter_received: "Erhalten ✓", filter_next: "Nächstes", filter_someday: "Eines Tages",
+    journey_empty: "Deine Reise beginnt hier. Durchsuche die Bibliothek und markiere Yants, die du hast, die nächsten brauchst, oder erträumst.",
+    browse_library: "Bibliothek Durchsuchen",
+    have_it: "✓ Habe Es", next_btn: "Nächstes", someday_btn: "Eines Tages",
+    add_note: "+ Füge eine persönliche Notiz hinzu",
+    note_placeholder: "Füge eine persönliche Notiz hinzu — wann du es bekamst, wer es dir gab, wie es sich anfühlte...",
+    note_save_hint: "Drücke Enter zum Speichern · Shift+Enter für neue Zeile",
+    journey_summary: "Reise Zusammenfassung",
+    stat_received: "Erhalten", stat_getting_next: "Nächstes", stat_someday: "Eines Tages", stat_total: "Gesamt Geplant",
+    language: "Sprache",
+  },
+  fr: {
+    // Intro
+    sacred_geometry: "Géométrie Sacrée · Bénédiction Ancienne",
+    app_title: "Oracle Sak Yant",
+    app_subtitle: "Guidance de Tatouage & Bibliothèque de Designs",
+    intro_desc: "Les sak yants sont des tatouages géométriques sacrés de Thaïlande, Cambodge et Laos — bénis par des moines et maîtres ajarn, porteurs d'un vrai poids spirituel.",
+    intro_sub: "Traversez les quatre éléments, offrez vos intentions et recevez votre manifestation yant personnalisée. Le voyage dure environ deux minutes.",
+    begin_reading: "Commencer la Lecture",
+    browse_all: "Voir Tous",
+    designs: "Designs",
+    continue_journey: "Continuer Mon Voyage",
+    yants_word: "yants",
+    approach_respect: "Approchez avec Respect",
+    disclaimer: "Les significations varient selon la lignée, l'ajarn et le temple. Cette application guide — elle ne déclare pas. Le design et placement final devraient toujours être confirmés avec un praticien qualifié.",
+    // Elements
+    elem_earth: "Terre", elem_water: "Eau", elem_fire: "Feu", elem_air: "Air",
+    elem_earth_desc: "Fondation · Racines · Ce que tu protèges",
+    elem_water_desc: "Profondeur · Intuition · Ce qui coule à travers toi",
+    elem_fire_desc: "Impulsion · Courage · Ce qui brûle en toi",
+    elem_air_desc: "Vision · Liberté · Ce vers quoi tu te diriges",
+    // Offerings
+    off_protection: "Protection", off_fortune: "Bonne Fortune", off_courage: "Courage",
+    off_love: "Amour & Charisme", off_wisdom: "Sagesse", off_travel: "Voyages Sûrs",
+    off_discipline: "Discipline", off_transformation: "Transformation", off_success: "Succès",
+    // Body Areas
+    area_upper_back: "Haut du Dos", area_center_back: "Milieu du Dos", area_neck_spine: "Cou / Épine Dorsale",
+    area_shoulder: "Épaule", area_chest: "Poitrine", area_upper_arm: "Biceps",
+    area_forearm: "Avant-bras", area_thigh: "Cuisse", area_calf: "Mollet",
+    // Quiz Nav
+    back: "← Retour", continue_btn: "Continuer →", reveal_yants: "Révélez Mes Yants",
+    of_word: "de", selected: "sélectionné", select_at_least: "sélectionner au moins",
+    areas_selected: "zone(s) sélectionnée(s)",
+    // Questions
+    q_path: "Comment veux-tu marcher ce chemin?",
+    q_path_sub: "Cela façonne la guidance que tu recevras.",
+    q_path_opt1: "Je cherche un design qui suit la lignée ancestrale — placement traditionnel, signification traditionnelle",
+    q_path_opt2: "Je cherche un design qui serve comme ancre symbolique personnelle — la signification compte, mais à mes conditions",
+    q_path_opt3: "J'apprends encore — guide-moi et j'écouterai",
+    q_earth: "Quel est le sol sous tes pieds?",
+    q_earth_sub: "La Terre demande: sur quoi tu te tiens?",
+    q_earth_opt1: "Mon peuple — ceux pour qui je ferais n'importe quoi",
+    q_earth_opt2: "Mes propres mains — ce que j'ai bâti et ce que j'ai survécu",
+    q_earth_opt3: "Quelque chose d'ancien — tradition, lignée, racines plus profondes que moi",
+    q_earth_opt4: "Honnêtement? Je la construis encore",
+    q_water: "Qu'est-ce qui coule sous ta surface?",
+    q_water_sub: "L'Eau demande: qu'est-ce que tu portes que les autres ne voient pas?",
+    q_water_opt1: "Une profonde intuition — je sens les choses avant qu'elles n'arrivent",
+    q_water_opt2: "Une ancienne douleur que j'apprends à lâcher prise",
+    q_water_opt3: "Un amour tranquille qui court plus profond que je ne le montre",
+    q_water_opt4: "Une agitation — un courant me tirant quelque part de nouveau",
+    q_fire: "Pour quoi marche-tu au travers du feu?",
+    q_fire_sub: "Le Feu demande: qu'est-ce qui te rend dangereux — de la meilleure façon?",
+    q_fire_opt1: "Les gens que j'aime — sans hésitation",
+    q_fire_opt2: "Ma propre liberté — je refuse d'être enfermé",
+    q_fire_opt3: "Quelque chose que je n'ai pas encore bâti — une vision que seul moi peux voir",
+    q_fire_opt4: "Ce qui est juste — je lutte pour la justice même si cela me coûte",
+    q_air: "Ferme les yeux. Que vois-tu?",
+    q_air_sub: "L'Air demande: vers quoi te diriges-tu?",
+    q_air_opt1: "Calme — paix après tout ce que j'ai traversé",
+    q_air_opt2: "Abondance — je veux que la vie déborde de bonnes choses",
+    q_air_opt3: "Connexion — être vraiment vu et profondément connu",
+    q_air_opt4: "L'inconnu — quelque part où je n'ai jamais été",
+    q_offerings: "Place tes offrandes sur la table.",
+    q_offerings_sub: "Choisis 2 ou 3 intentions que ton yant portera.",
+    q_balance: "Quel élément as-tu besoin de plus?",
+    q_balance_sub: "Pas ce que tu es — ce qui manque. Le yant remplit le vide.",
+    q_balance_opt1: "Terre — J'ai besoin d'ancrage, de racines, quelque chose de solide sous moi",
+    q_balance_opt2: "Eau — J'ai besoin de sentir à nouveau, de lâcher prise, de me transformer",
+    q_balance_opt3: "Feu — J'ai besoin de courage, de pouvoir, de la volonté d'enfin agir",
+    q_balance_opt4: "Air — J'ai besoin de légèreté, de vision, d'espace pour respirer",
+    q_placement: "Où sur ton corps cela-t-il appartient?",
+    q_placement_sub: "Tape les zones que tu es ouvert à. Tu peux en sélectionner plusieurs.",
+    q_discretion: "Cela doit-il rester entre toi et l'encre?",
+    q_discretion_sub: "Aucun jugement — les besoins pratiques façonnent le bon choix.",
+    q_discretion_opt1: "Oui — cela devrait être facile à cacher",
+    q_discretion_opt2: "Ça ne me dérange pas qu'il soit visible parfois",
+    q_discretion_opt3: "Je veux qu'il soit visible — c'est une partie de qui je suis",
+    q_collage: "Un yant, ou plusieurs?",
+    q_collage_sub: "Beaucoup de gens construisent une carte du corps sacré au fil des ans.",
+    q_collage_opt1: "Un yant parfait — unique et significatif",
+    q_collage_opt2: "Une pièce de base pour commencer ma collection",
+    q_collage_opt3: "Je veux un collage complet — je pense grand",
+    q_collage_opt4: "Pas sûr encore — montre-moi ce qui résonne",
+    // Reading
+    your_manifestation: "Ta Manifestation",
+    your_top_yants: "Tes Meilleurs Yants",
+    tap_details: "Tape n'importe quel yant pour voir les détails complets",
+    your_offerings: "Tes Offrandes",
+    explore_library: "Explorer la Bibliothèque Complète →",
+    share_reading: "Partage ta Lecture",
+    copied: "✓ Copié",
+    primary_element_is: "Ton élément principal est",
+    with_strong: "avec une forte",
+    influence: "influence",
+    reading_earth: "Tu es enraciné — ancré dans ce qui compte, stable quand le monde tremble.",
+    reading_water: "Tu coules profondément — sentant, transformant, portant des courants que les autres ne voient pas.",
+    reading_fire: "Tu brûles — courage, impulsion, une flamme qui refuse de s'éteindre.",
+    reading_air: "Tu te diriges — toujours regardant vers le haut, vers l'extérieur, vers ce qui pourrait être.",
+    combo_earth_water: "Enraciné mais fluide. Tu t'accroches à ce qui compte tout en lâchant ce qui ne te sert pas.",
+    combo_earth_fire: "Solide et féroce. Tu protèges avec la force des montagnes et la chaleur de la conviction.",
+    combo_earth_air: "Ancré mais expansif. Tes racines plongent profond mais ta vision s'étend loin.",
+    combo_water_fire: "La profondeur rencontre l'impulsion. Tu sens tout et le canalises dans un mouvement irrésistible vers l'avant.",
+    combo_water_air: "Intuitif et libre. Tu sens ce que les autres manquent et suis des courants que personne d'autre ne peut sentir.",
+    combo_fire_air: "Brûlant brillant et atteignant haut. Ambition pure tempérée par la vision et l'ouverture.",
+    // Library
+    reading_complete: "Lecture Complète",
+    your_yant_library: "Ta Bibliothèque Yant",
+    design_library: "Bibliothèque de Designs",
+    in_collection: "en collection",
+    total_designs: "designs totaux",
+    my_journey: "Mon Voyage",
+    view_collection: "Voir Collection",
+    start_over: "Recommencer",
+    for_you: "Pour Toi",
+    all_n_designs: "Tous les Designs",
+    cat_all: "Tous les Designs", cat_geometric: "Géométrique", cat_animal: "Esprits Animaux", cat_deity: "Divinités", cat_nature: "Nature",
+    click_to_learn: "Clique sur n'importe quel design pour en savoir plus · Utilise + Ajouter pour construire ta collection",
+    in_collection_btn: "✓ En Collection", add_btn: "+ Ajouter",
+    // Modal
+    placement_label: "Placement", energy_label: "Énergie", visibility_label: "Visibilité", size_label: "Taille",
+    vis_hidden: "Facile à cacher", vis_semi: "Semi-caché", vis_visible: "Visible",
+    design_word: "design", collage_note: "Note Collage",
+    see_photos: "Voir Photos de Vrais Tatouages →",
+    mark_journey: "Marque Ton Voyage",
+    journey_have: "✓ J'ai Ceci", journey_next: "Prochain", journey_someday: "Un Jour",
+    remove_collection: "Retirer de la Collection", add_to_collection: "Ajouter à la Collection",
+    // Collage
+    your_sacred_collection: "Ta Collection Sacrée",
+    yants_selected: "Yants Sélectionnés",
+    no_designs_yet: "Aucun design sélectionné encore. Retourne en arrière et choisis tes yants.",
+    placement_collage_notes: "Notes de Placement & Collage",
+    the_next_step: "La Prochaine Étape",
+    bring_to_master: "Apporte cette Lecture à un Maître",
+    next_step_desc: "Ta manifestation est complète — mais le yant ne t'appartient pas jusqu'à ce qu'il te soit donné par un ajarn qualifié ou un moine. Partage ta lecture, discute de tes choix, et reçois la bénédiction avec respect et intention.",
+    copy_consultation: "Copie Demande de Consultation", share_collection: "Partage Collection",
+    sacred_not_decorative: "Les sak yants sont sacrés — pas décoratifs.",
+    seek_legitimate: "Cherche un véritable moine ou maître ajarn en Thaïlande.",
+    approach_humility: "Approche avec humilité, offrandes et intention sincère.",
+    meanings_vary: "Les significations varient selon la lignée, l'ajarn et le temple.",
+    app_guides: "Cette application guide — elle ne déclare pas la vérité absolue.",
+    remove_btn: "Retirer", view_details: "Voir Détails", back_to_library: "← Retour à la Bibliothèque",
+    // Journey
+    my_sacred_journey: "Mon Voyage Sacré",
+    your_sak_yant_plan: "Ton Plan Sak Yant",
+    received_word: "reçu", planned_word: "planifié", someday_word: "un jour",
+    library_btn: "← Bibliothèque", collection_btn: "Collection",
+    filter_all: "Tous", filter_received: "Reçu ✓", filter_next: "Prochain", filter_someday: "Un Jour",
+    journey_empty: "Ton voyage commence ici. Explore la bibliothèque et marque les yants que tu as, que tu veux ensuite, ou dont tu rêves.",
+    browse_library: "Explorer Bibliothèque",
+    have_it: "✓ Je l'Ai", next_btn: "Prochain", someday_btn: "Un Jour",
+    add_note: "+ Ajoute une note personnelle",
+    note_placeholder: "Ajoute une note personnelle — quand tu l'as reçu, qui te l'a donné, comment ça t'a fait sentir...",
+    note_save_hint: "Appuie sur Entrée pour sauvegarder · Shift+Entrée pour nouvelle ligne",
+    journey_summary: "Résumé du Voyage",
+    stat_received: "Reçu", stat_getting_next: "Prochain", stat_someday: "Un Jour", stat_total: "Total Planifié",
+    language: "Langue",
+  },
+  es: {
+    // Intro
+    sacred_geometry: "Geometría Sagrada · Bendición Antigua",
+    app_title: "Oráculo Sak Yant",
+    app_subtitle: "Guía de Tatuaje & Biblioteca de Diseños",
+    intro_desc: "Los sak yants son tatuajes geométricos sagrados de Tailandia, Camboya y Laos — bendecidos por monjes y maestros ajarn, cargados de verdadero peso espiritual.",
+    intro_sub: "Atraviesa los cuatro elementos, ofrece tus intenciones y recibe tu manifestación yant personalizada. El viaje dura aproximadamente dos minutos.",
+    begin_reading: "Comenzar la Lectura",
+    browse_all: "Ver Todos",
+    designs: "Diseños",
+    continue_journey: "Continuar Mi Viaje",
+    yants_word: "yants",
+    approach_respect: "Acércate con Respeto",
+    disclaimer: "Los significados varían según el linaje, ajarn y templo. Esta aplicación guía — no declara. El diseño y colocación final siempre deben confirmarse con un practicante calificado.",
+    // Elements
+    elem_earth: "Tierra", elem_water: "Agua", elem_fire: "Fuego", elem_air: "Aire",
+    elem_earth_desc: "Fundación · Raíces · Lo que proteges",
+    elem_water_desc: "Profundidad · Intuición · Lo que fluye a través de ti",
+    elem_fire_desc: "Impulso · Valentía · Lo que arde en ti",
+    elem_air_desc: "Visión · Libertad · Lo que persigues",
+    // Offerings
+    off_protection: "Protección", off_fortune: "Buena Fortuna", off_courage: "Valentía",
+    off_love: "Amor & Carisma", off_wisdom: "Sabiduría", off_travel: "Viajes Seguros",
+    off_discipline: "Disciplina", off_transformation: "Transformación", off_success: "Éxito",
+    // Body Areas
+    area_upper_back: "Parte Superior de la Espalda", area_center_back: "Centro de la Espalda", area_neck_spine: "Cuello / Espina Dorsal",
+    area_shoulder: "Hombro", area_chest: "Pecho", area_upper_arm: "Brazo Superior",
+    area_forearm: "Antebrazo", area_thigh: "Muslo", area_calf: "Pantorrilla",
+    // Quiz Nav
+    back: "← Atrás", continue_btn: "Continuar →", reveal_yants: "Revelar Mis Yants",
+    of_word: "de", selected: "seleccionado", select_at_least: "selecciona al menos",
+    areas_selected: "área(s) seleccionada(s)",
+    // Questions
+    q_path: "¿Cómo quieres caminar este camino?",
+    q_path_sub: "Esto forma la guía que recibirás.",
+    q_path_opt1: "Busco un diseño que siga el linaje ancestral — colocación tradicional, significado tradicional",
+    q_path_opt2: "Busco un diseño que sirva como ancla simbólica personal — la significación importa, pero en mis términos",
+    q_path_opt3: "Aún estoy aprendiendo — guíame y escucharé",
+    q_earth: "¿Cuál es el terreno bajo tus pies?",
+    q_earth_sub: "La Tierra pregunta: ¿en qué te apoyas?",
+    q_earth_opt1: "Mi gente — aquellos por quienes haría cualquier cosa",
+    q_earth_opt2: "Mis propias manos — lo que he construido y lo que he sobrevivido",
+    q_earth_opt3: "Algo antiguo — tradición, linaje, raíces más profundas que yo",
+    q_earth_opt4: "Honestamente? Aún la estoy construyendo",
+    q_water: "¿Qué corre bajo tu superficie?",
+    q_water_sub: "El Agua pregunta: ¿qué cargas que otros no ven?",
+    q_water_opt1: "Una profunda intuición — siento cosas antes de que ocurran",
+    q_water_opt2: "Viejo dolor que estoy aprendiendo a soltar",
+    q_water_opt3: "Un amor tranquilo que corre más profundo que lo que muestro",
+    q_water_opt4: "Inquietud — una corriente que me arrastra hacia algún lugar nuevo",
+    q_fire: "¿Por qué cruzarías el fuego?",
+    q_fire_sub: "El Fuego pregunta: ¿qué te hace peligroso — de la mejor manera?",
+    q_fire_opt1: "La gente que amo — sin dudar",
+    q_fire_opt2: "Mi propia libertad — me niego a estar encerrado",
+    q_fire_opt3: "Algo que aún no he construido — una visión que solo yo puedo ver",
+    q_fire_opt4: "Lo correcto — lucho por la justicia incluso si me cuesta",
+    q_air: "Cierra los ojos. ¿Qué ves?",
+    q_air_sub: "El Aire pregunta: ¿hacia qué te diriges?",
+    q_air_opt1: "Quietud — paz después de todo por lo que he pasado",
+    q_air_opt2: "Abundancia — quiero que la vida rebose de cosas buenas",
+    q_air_opt3: "Conexión — ser verdaderamente visto y profundamente conocido",
+    q_air_opt4: "Lo desconocido — algún lugar donde nunca he estado",
+    q_offerings: "Coloca tus ofrendas en la mesa.",
+    q_offerings_sub: "Elige 2 o 3 intenciones que tu yant llevará.",
+    q_balance: "¿Qué elemento necesitas más?",
+    q_balance_sub: "No lo que eres — lo que falta. El yant llena el vacío.",
+    q_balance_opt1: "Tierra — Necesito arraigo, raíces, algo sólido bajo mí",
+    q_balance_opt2: "Agua — Necesito sentir de nuevo, soltar, transformarme",
+    q_balance_opt3: "Fuego — Necesito valentía, poder, la voluntad de finalmente actuar",
+    q_balance_opt4: "Aire — Necesito ligereza, visión, espacio para respirar",
+    q_placement: "¿Dónde en tu cuerpo sientes que pertenece?",
+    q_placement_sub: "Toca las áreas que estás abierto a. Puedes seleccionar múltiples.",
+    q_discretion: "¿Necesita permanecer entre tú y la tinta?",
+    q_discretion_sub: "Sin juicio — las necesidades prácticas moldean la opción correcta.",
+    q_discretion_opt1: "Sí — debería ser fácil de ocultar",
+    q_discretion_opt2: "No me importa que se vea a veces",
+    q_discretion_opt3: "Quiero que sea visible — esto es parte de quién soy",
+    q_collage: "¿Un yant, o muchos?",
+    q_collage_sub: "Muchas personas construyen un mapa del cuerpo sagrado a lo largo de los años.",
+    q_collage_opt1: "Un yant perfecto — único y significativo",
+    q_collage_opt2: "Una pieza de base para comenzar mi colección",
+    q_collage_opt3: "Quiero un collage completo — estoy pensando en grande",
+    q_collage_opt4: "Aún no estoy seguro — muéstrame qué resuena",
+    // Reading
+    your_manifestation: "Tu Manifestación",
+    your_top_yants: "Tus Mejores Yants",
+    tap_details: "Toca cualquier yant para ver detalles completos",
+    your_offerings: "Tus Ofrendas",
+    explore_library: "Explorar Biblioteca Completa →",
+    share_reading: "Comparte Tu Lectura",
+    copied: "✓ Copiado",
+    primary_element_is: "Tu elemento principal es",
+    with_strong: "con fuerte",
+    influence: "influencia",
+    reading_earth: "Estás arraigado — ancado en lo que importa, firme cuando el mundo tiembla.",
+    reading_water: "Fluyes profundamente — sintiendo, transformando, llevando corrientes que otros no ven.",
+    reading_fire: "Arde — valentía, impulso, una llama que se niega a apagarse.",
+    reading_air: "Te diriges — siempre mirando hacia arriba, hacia afuera, hacia lo que podría ser.",
+    combo_earth_water: "Arraigado pero fluido. Mantente firme en lo que importa mientras sueltas lo que no te sirve.",
+    combo_earth_fire: "Sólido y feroz. Proteges con la fuerza de las montañas y el calor de la convicción.",
+    combo_earth_air: "Arraigado pero expansivo. Tus raíces van profundas pero tu visión alcanza lejos.",
+    combo_water_fire: "La profundidad se encuentra con el impulso. Sientes todo y lo canalizas en movimiento irrésistible hacia adelante.",
+    combo_water_air: "Intuitivo y libre. Sientes lo que otros pierden y sigues corrientes que nadie más puede sentir.",
+    combo_fire_air: "Ardiente y brillante y alcanzando alto. Ambición pura temperada por visión y apertura.",
+    // Library
+    reading_complete: "Lectura Completada",
+    your_yant_library: "Tu Biblioteca Yant",
+    design_library: "Biblioteca de Diseños",
+    in_collection: "en colección",
+    total_designs: "diseños totales",
+    my_journey: "Mi Viaje",
+    view_collection: "Ver Colección",
+    start_over: "Comenzar de Nuevo",
+    for_you: "Para Ti",
+    all_n_designs: "Todos los Diseños",
+    cat_all: "Todos los Diseños", cat_geometric: "Geométrico", cat_animal: "Espíritus Animales", cat_deity: "Deidades", cat_nature: "Naturaleza",
+    click_to_learn: "Haz clic en cualquier diseño para aprender más · Usa + Agregar para construir tu colección",
+    in_collection_btn: "✓ En Colección", add_btn: "+ Agregar",
+    // Modal
+    placement_label: "Colocación", energy_label: "Energía", visibility_label: "Visibilidad", size_label: "Tamaño",
+    vis_hidden: "Fácil de ocultar", vis_semi: "Semi-oculto", vis_visible: "Visible",
+    design_word: "diseño", collage_note: "Nota del Collage",
+    see_photos: "Ver Fotos de Tatuajes Reales →",
+    mark_journey: "Marca Tu Viaje",
+    journey_have: "✓ Tengo Esto", journey_next: "Próximo", journey_someday: "Algún Día",
+    remove_collection: "Remover de la Colección", add_to_collection: "Agregar a la Colección",
+    // Collage
+    your_sacred_collection: "Tu Colección Sagrada",
+    yants_selected: "Yants Seleccionados",
+    no_designs_yet: "Sin diseños seleccionados aún. Vuelve atrás y elige tus yants.",
+    placement_collage_notes: "Notas de Colocación & Collage",
+    the_next_step: "El Siguiente Paso",
+    bring_to_master: "Lleva Esta Lectura a un Maestro",
+    next_step_desc: "Tu manifestación está completa — pero el yant no es tuyo hasta que te lo dé un ajarn calificado o un monje. Comparte tu lectura, discute tus elecciones y recibe la bendición con respeto e intención.",
+    copy_consultation: "Copiar Solicitud de Consulta", share_collection: "Compartir Colección",
+    sacred_not_decorative: "Los sak yants son sagrados — no decorativos.",
+    seek_legitimate: "Busca un monje legítimo o maestro ajarn en Tailandia.",
+    approach_humility: "Acércate con humildad, ofrendas e intención sincera.",
+    meanings_vary: "Los significados varían según el linaje, ajarn y templo.",
+    app_guides: "Esta aplicación guía — no declara la verdad absoluta.",
+    remove_btn: "Remover", view_details: "Ver Detalles", back_to_library: "← Volver a la Biblioteca",
+    // Journey
+    my_sacred_journey: "Mi Viaje Sagrado",
+    your_sak_yant_plan: "Tu Plan Sak Yant",
+    received_word: "recibido", planned_word: "planeado", someday_word: "algún día",
+    library_btn: "← Biblioteca", collection_btn: "Colección",
+    filter_all: "Todos", filter_received: "Recibido ✓", filter_next: "Próximo", filter_someday: "Algún Día",
+    journey_empty: "Tu viaje comienza aquí. Explora la biblioteca y marca yants que tienes, quieres después, o de los que sueñas.",
+    browse_library: "Explorar Biblioteca",
+    have_it: "✓ Tengo", next_btn: "Próximo", someday_btn: "Algún Día",
+    add_note: "+ Agrega una nota personal",
+    note_placeholder: "Agrega una nota personal — cuándo lo recibiste, quién te lo dio, cómo se sintió...",
+    note_save_hint: "Presiona Enter para guardar · Shift+Enter para nueva línea",
+    journey_summary: "Resumen del Viaje",
+    stat_received: "Recibido", stat_getting_next: "Próximo", stat_someday: "Algún Día", stat_total: "Total Planeado",
+    language: "Idioma",
+  },
+  pt: {
+    // Intro
+    sacred_geometry: "Geometria Sagrada · Bênção Antiga",
+    app_title: "Oráculo Sak Yant",
+    app_subtitle: "Orientação de Tatuagem & Biblioteca de Designs",
+    intro_desc: "Sak yants são tatuagens geométricas sagradas da Tailândia, Camboja e Laos — abençoadas por monges e mestres ajarn, carregadas de verdadeiro peso espiritual.",
+    intro_sub: "Atravesse os quatro elementos, ofereça suas intenções e receba sua manifestação yant personalizada. A jornada leva cerca de dois minutos.",
+    begin_reading: "Começar a Leitura",
+    browse_all: "Ver Todos",
+    designs: "Designs",
+    continue_journey: "Continuar Minha Jornada",
+    yants_word: "yants",
+    approach_respect: "Aproxime-se com Respeito",
+    disclaimer: "Os significados variam por linhagem, ajarn e templo. Este aplicativo orienta — não declara. O design e colocação final devem sempre ser confirmados com um praticante qualificado.",
+    // Elements
+    elem_earth: "Terra", elem_water: "Água", elem_fire: "Fogo", elem_air: "Ar",
+    elem_earth_desc: "Fundação · Raízes · O que você protege",
+    elem_water_desc: "Profundidade · Intuição · O que flui através de você",
+    elem_fire_desc: "Impulso · Coragem · O que queima em você",
+    elem_air_desc: "Visão · Liberdade · O que você busca",
+    // Offerings
+    off_protection: "Proteção", off_fortune: "Boa Sorte", off_courage: "Coragem",
+    off_love: "Amor & Carisma", off_wisdom: "Sabedoria", off_travel: "Viagens Seguras",
+    off_discipline: "Disciplina", off_transformation: "Transformação", off_success: "Sucesso",
+    // Body Areas
+    area_upper_back: "Parte Superior das Costas", area_center_back: "Centro das Costas", area_neck_spine: "Pescoço / Coluna Vertebral",
+    area_shoulder: "Ombro", area_chest: "Peito", area_upper_arm: "Braço Superior",
+    area_forearm: "Antebraço", area_thigh: "Coxa", area_calf: "Panturrilha",
+    // Quiz Nav
+    back: "← Voltar", continue_btn: "Continuar →", reveal_yants: "Revelar Meus Yants",
+    of_word: "de", selected: "selecionado", select_at_least: "selecione pelo menos",
+    areas_selected: "área(s) selecionada(s)",
+    // Questions
+    q_path: "Como você quer caminhar este caminho?",
+    q_path_sub: "Isto molda a orientação que você receberá.",
+    q_path_opt1: "Busco um design que siga a linhagem ancestral — colocação tradicional, significado tradicional",
+    q_path_opt2: "Busco um design que sirva como âncora simbólica pessoal — o significado importa, mas nos meus termos",
+    q_path_opt3: "Ainda estou aprendendo — oriente-me e escutarei",
+    q_earth: "Qual é o solo sob seus pés?",
+    q_earth_sub: "A Terra pergunta: em que você se apoia?",
+    q_earth_opt1: "Meu povo — aqueles pelos quais faria qualquer coisa",
+    q_earth_opt2: "Minhas próprias mãos — o que construí e o que sobrevivi",
+    q_earth_opt3: "Algo antigo — tradição, linhagem, raízes mais profundas que eu",
+    q_earth_opt4: "Honestamente? Ainda estou construindo",
+    q_water: "O que flui sob sua superfície?",
+    q_water_sub: "A Água pergunta: o que você carrega que outros não veem?",
+    q_water_opt1: "Uma intuição profunda — sinto coisas antes de acontecerem",
+    q_water_opt2: "Dor antiga que estou aprendendo a soltar",
+    q_water_opt3: "Um amor tranquilo que corre mais profundo que mostro",
+    q_water_opt4: "Inquietação — uma corrente me puxando para algum lugar novo",
+    q_fire: "Por que você atravessaria o fogo?",
+    q_fire_sub: "O Fogo pergunta: o que te torna perigoso — da melhor forma?",
+    q_fire_opt1: "As pessoas que amo — sem hesitação",
+    q_fire_opt2: "Minha própria liberdade — recuso-me a ser aprisionado",
+    q_fire_opt3: "Algo que ainda não construí — uma visão apenas eu posso ver",
+    q_fire_opt4: "O que é certo — luto pela justiça mesmo se me custar",
+    q_air: "Feche os olhos. O que você vê?",
+    q_air_sub: "O Ar pergunta: para o que você está se dirigindo?",
+    q_air_opt1: "Quietude — paz depois de tudo que passei",
+    q_air_opt2: "Abundância — quero que a vida transborde de coisas boas",
+    q_air_opt3: "Conexão — ser verdadeiramente visto e profundamente conhecido",
+    q_air_opt4: "O desconhecido — algum lugar onde nunca estive",
+    q_offerings: "Coloque suas oferendas na mesa.",
+    q_offerings_sub: "Escolha 2 ou 3 intenções que seu yant carregará.",
+    q_balance: "Qual elemento você precisa mais?",
+    q_balance_sub: "Não o que você é — o que falta. O yant preenche a lacuna.",
+    q_balance_opt1: "Terra — Preciso de raiz, fundação, algo sólido sob mim",
+    q_balance_opt2: "Água — Preciso sentir novamente, soltar, me transformar",
+    q_balance_opt3: "Fogo — Preciso de coragem, poder, a vontade de finalmente agir",
+    q_balance_opt4: "Ar — Preciso de leveza, visão, espaço para respirar",
+    q_placement: "Onde em seu corpo você sente que pertence?",
+    q_placement_sub: "Toque as áreas que você está aberto. Você pode selecionar várias.",
+    q_discretion: "Isso precisa ficar entre você e a tinta?",
+    q_discretion_sub: "Sem julgamento — necessidades práticas moldam a escolha certa.",
+    q_discretion_opt1: "Sim — deveria ser fácil de esconder",
+    q_discretion_opt2: "Não me importa se fica visível às vezes",
+    q_discretion_opt3: "Quero que seja visível — isso faz parte de quem sou",
+    q_collage: "Um yant, ou vários?",
+    q_collage_sub: "Muitas pessoas constroem um mapa sagrado do corpo ao longo dos anos.",
+    q_collage_opt1: "Um yant perfeito — único e significativo",
+    q_collage_opt2: "Uma peça de fundação para começar minha coleção",
+    q_collage_opt3: "Quero uma colagem completa — estou pensando grande",
+    q_collage_opt4: "Ainda não tenho certeza — mostre-me o que ressoa",
+    // Reading
+    your_manifestation: "Sua Manifestação",
+    your_top_yants: "Seus Melhores Yants",
+    tap_details: "Toque qualquer yant para ver detalhes completos",
+    your_offerings: "Suas Oferendas",
+    explore_library: "Explorar Biblioteca Completa →",
+    share_reading: "Compartilhe Sua Leitura",
+    copied: "✓ Copiado",
+    primary_element_is: "Seu elemento principal é",
+    with_strong: "com forte",
+    influence: "influência",
+    reading_earth: "Você está enraizado — ancorado no que importa, estável quando o mundo abala.",
+    reading_water: "Você flui profundamente — sentindo, transformando, carregando correntes que outros não veem.",
+    reading_fire: "Você queima — coragem, impulso, uma chama que se recusa a apagar.",
+    reading_air: "Você se dirige — sempre olhando para cima, para fora, para o que poderia ser.",
+    combo_earth_water: "Enraizado mas fluido. Você se apega ao que importa enquanto solta o que não o serve.",
+    combo_earth_fire: "Sólido e feroz. Você protege com a força das montanhas e o calor da convicção.",
+    combo_earth_air: "Ancorado mas expansivo. Suas raízes são profundas, mas sua visão alcança longe.",
+    combo_water_fire: "Profundidade encontra impulso. Você sente tudo e o canaliza em movimento irresistível para frente.",
+    combo_water_air: "Intuitivo e livre. Você sente o que outros perdem e segue correntes que ninguém mais consegue sentir.",
+    combo_fire_air: "Queimando brilhante e alcançando alto. Ambição pura temperada por visão e abertura.",
+    // Library
+    reading_complete: "Leitura Concluída",
+    your_yant_library: "Sua Biblioteca Yant",
+    design_library: "Biblioteca de Designs",
+    in_collection: "na coleção",
+    total_designs: "total de designs",
+    my_journey: "Minha Jornada",
+    view_collection: "Ver Coleção",
+    start_over: "Começar Novamente",
+    for_you: "Para Você",
+    all_n_designs: "Todos os Designs",
+    cat_all: "Todos os Designs", cat_geometric: "Geométrico", cat_animal: "Espíritos Animais", cat_deity: "Deidades", cat_nature: "Natureza",
+    click_to_learn: "Clique em qualquer design para aprender mais · Use + Adicionar para construir sua coleção",
+    in_collection_btn: "✓ Na Coleção", add_btn: "+ Adicionar",
+    // Modal
+    placement_label: "Colocação", energy_label: "Energia", visibility_label: "Visibilidade", size_label: "Tamanho",
+    vis_hidden: "Fácil de esconder", vis_semi: "Semi-oculto", vis_visible: "Visível",
+    design_word: "design", collage_note: "Nota da Colagem",
+    see_photos: "Ver Fotos de Tatuagens Reais →",
+    mark_journey: "Marque Sua Jornada",
+    journey_have: "✓ Tenho Isto", journey_next: "Próximo", journey_someday: "Um Dia",
+    remove_collection: "Remover da Coleção", add_to_collection: "Adicionar à Coleção",
+    // Collage
+    your_sacred_collection: "Sua Coleção Sagrada",
+    yants_selected: "Yants Selecionados",
+    no_designs_yet: "Nenhum design selecionado ainda. Volte e escolha seus yants.",
+    placement_collage_notes: "Notas de Colocação & Colagem",
+    the_next_step: "O Próximo Passo",
+    bring_to_master: "Leve Esta Leitura a um Mestre",
+    next_step_desc: "Sua manifestação está completa — mas o yant não é seu até ser dado por um ajarn qualificado ou monge. Compartilhe sua leitura, discuta suas escolhas e receba a bênção com respeito e intenção.",
+    copy_consultation: "Copiar Solicitação de Consulta", share_collection: "Compartilhar Coleção",
+    sacred_not_decorative: "Sak yants são sagrados — não decorativos.",
+    seek_legitimate: "Procure um monge legítimo ou mestre ajarn na Tailândia.",
+    approach_humility: "Aproxime-se com humildade, oferendas e intenção sincera.",
+    meanings_vary: "Os significados variam por linhagem, ajarn e templo.",
+    app_guides: "Este aplicativo orienta — não declara verdade absoluta.",
+    remove_btn: "Remover", view_details: "Ver Detalhes", back_to_library: "← Voltar à Biblioteca",
+    // Journey
+    my_sacred_journey: "Minha Jornada Sagrada",
+    your_sak_yant_plan: "Seu Plano Sak Yant",
+    received_word: "recebido", planned_word: "planejado", someday_word: "um dia",
+    library_btn: "← Biblioteca", collection_btn: "Coleção",
+    filter_all: "Todos", filter_received: "Recebido ✓", filter_next: "Próximo", filter_someday: "Um Dia",
+    journey_empty: "Sua jornada começa aqui. Explore a biblioteca e marque yants que você tem, quer depois, ou sonha.",
+    browse_library: "Explorar Biblioteca",
+    have_it: "✓ Tenho", next_btn: "Próximo", someday_btn: "Um Dia",
+    add_note: "+ Adicione uma nota pessoal",
+    note_placeholder: "Adicione uma nota pessoal — quando você recebeu, quem o deu, como se sentiu...",
+    note_save_hint: "Pressione Enter para salvar · Shift+Enter para nova linha",
+    journey_summary: "Resumo da Jornada",
+    stat_received: "Recebido", stat_getting_next: "Próximo", stat_someday: "Um Dia", stat_total: "Total Planejado",
+    language: "Idioma",
+  },
+  ru: {
+    // Intro
+    sacred_geometry: "Священная геометрия · Древнее благословение",
+    app_title: "Оракул Сак Янтра",
+    app_subtitle: "Руководство по татуировкам и библиотека дизайнов",
+    intro_desc: "Сак янтры — это священные геометрические татуировки из Таиланда, Камбоджи и Лаоса — благословленные монахами и мастерами аджарн, несущие истинный духовный вес.",
+    intro_sub: "Пройдите через четыре элемента, принесите свои намерения и получите свое персональное проявление янтры. Путешествие займет около двух минут.",
+    begin_reading: "Начать Чтение",
+    browse_all: "Посмотреть Все",
+    designs: "Дизайны",
+    continue_journey: "Продолжить Мой Путь",
+    yants_word: "янтры",
+    approach_respect: "Подходите с Уважением",
+    disclaimer: "Значения различаются в зависимости от линии, аджарна и храма. Это приложение направляет — не объявляет. Окончательный дизайн и размещение всегда должны быть подтверждены квалифицированным практиком.",
+    // Elements
+    elem_earth: "Земля", elem_water: "Вода", elem_fire: "Огонь", elem_air: "Воздух",
+    elem_earth_desc: "Основание · Корни · То, что ты защищаешь",
+    elem_water_desc: "Глубина · Интуиция · То, что течет сквозь тебя",
+    elem_fire_desc: "Импульс · Мужество · То, что горит в тебе",
+    elem_air_desc: "Видение · Свобода · То, к чему ты стремишься",
+    // Offerings
+    off_protection: "Защита", off_fortune: "Удача", off_courage: "Мужество",
+    off_love: "Любовь & Харизма", off_wisdom: "Мудрость", off_travel: "Безопасные Путешествия",
+    off_discipline: "Дисциплина", off_transformation: "Трансформация", off_success: "Успех",
+    // Body Areas
+    area_upper_back: "Верхняя спина", area_center_back: "Центр спины", area_neck_spine: "Шея / Позвоночник",
+    area_shoulder: "Плечо", area_chest: "Грудь", area_upper_arm: "Верхняя часть руки",
+    area_forearm: "Предплечье", area_thigh: "Бедро", area_calf: "Голень",
+    // Quiz Nav
+    back: "← Назад", continue_btn: "Продолжить →", reveal_yants: "Раскрыть Мои Янтры",
+    of_word: "из", selected: "выбран", select_at_least: "выбери по крайней мере",
+    areas_selected: "выбранная(ые) область(и)",
+    // Questions
+    q_path: "Как ты хочешь пройти этот путь?",
+    q_path_sub: "Это формирует руководство, которое ты получишь.",
+    q_path_opt1: "Я ищу дизайн, который следует ancestральной линии — традиционное размещение, традиционное значение",
+    q_path_opt2: "Я ищу дизайн, который служит личным символическим якорем — значение важно, но на моих условиях",
+    q_path_opt3: "Я все еще учусь — направляй меня, и я буду слушать",
+    q_earth: "Что лежит в основе под твоими ногами?",
+    q_earth_sub: "Земля спрашивает: на чем ты стоишь?",
+    q_earth_opt1: "Мой народ — те, ради которых я сделаю все",
+    q_earth_opt2: "Мои собственные руки — то, что я построил и пережил",
+    q_earth_opt3: "Что-то древнее — традиция, род, корни глубже, чем я",
+    q_earth_opt4: "Честно говоря? Я все еще это строю",
+    q_water: "Что течет под твоей поверхностью?",
+    q_water_sub: "Вода спрашивает: что ты несешь, чего не видят другие?",
+    q_water_opt1: "Глубокая интуиция — я чувствую вещи раньше, чем они происходят",
+    q_water_opt2: "Старую боль, которую я учусь отпускать",
+    q_water_opt3: "Тихую любовь, которая течет глубже, чем я показываю",
+    q_water_opt4: "Беспокойство — течение, тянущее меня куда-то новое",
+    q_fire: "За что ты пройдешь сквозь огонь?",
+    q_fire_sub: "Огонь спрашивает: что делает тебя опасным — в лучшем смысле?",
+    q_fire_opt1: "Людей, которых я люблю — без колебаний",
+    q_fire_opt2: "Мою собственную свободу — я отказываюсь быть в клетке",
+    q_fire_opt3: "Что-то, что я еще не построил — видение, которое видит только я",
+    q_fire_opt4: "То, что правильно — я борюсь за справедливость, даже если это мне стоит",
+    q_air: "Закрой глаза. Что ты видишь?",
+    q_air_sub: "Воздух спрашивает: к чему ты стремишься?",
+    q_air_opt1: "Тишину — мир после всего, что я прошел",
+    q_air_opt2: "Изобилие — я хочу, чтобы жизнь переполнялась хорошим",
+    q_air_opt3: "Связь — быть действительно видимым и глубоко узнанным",
+    q_air_opt4: "Неизвестное — где-то, где я никогда не был",
+    q_offerings: "Положи свои приношения на стол.",
+    q_offerings_sub: "Выбери 2 или 3 намерения, которые будет нести твоя янтра.",
+    q_balance: "Какого элемента тебе нужно больше?",
+    q_balance_sub: "Не то, что ты есть — то, чего не хватает. Янтра заполняет пустоту.",
+    q_balance_opt1: "Земля — Мне нужна основа, корни, что-то твердое под мной",
+    q_balance_opt2: "Вода — Мне нужно снова почувствовать, отпустить, трансформироваться",
+    q_balance_opt3: "Огонь — Мне нужно мужество, сила, воля наконец действовать",
+    q_balance_opt4: "Воздух — Мне нужна легкость, видение, пространство для дыхания",
+    q_placement: "Где на своем теле ты чувствуешь, что это принадлежит?",
+    q_placement_sub: "Коснись областей, к которым ты открыт. Ты можешь выбрать несколько.",
+    q_discretion: "Это должно остаться между тобой и чернилами?",
+    q_discretion_sub: "Без суда — практические потребности определяют правильный выбор.",
+    q_discretion_opt1: "Да — это должно быть легко скрыть",
+    q_discretion_opt2: "Мне не против, если иногда это будет видно",
+    q_discretion_opt3: "Я хочу, чтобы это было видно — это часть того, кто я",
+    q_collage: "Одна янтра или много?",
+    q_collage_sub: "Многие люди строят священную карту тела на протяжении лет.",
+    q_collage_opt1: "Одна совершенная янтра — единственная и значимая",
+    q_collage_opt2: "Базовая работа, чтобы начать мою коллекцию",
+    q_collage_opt3: "Я хочу полный коллаж — я думаю масштабно",
+    q_collage_opt4: "Еще не уверен — покажи мне, что резонирует",
+    // Reading
+    your_manifestation: "Твое Проявление",
+    your_top_yants: "Твои Лучшие Янтры",
+    tap_details: "Коснись любой янтры, чтобы увидеть полные детали",
+    your_offerings: "Твои Приношения",
+    explore_library: "Исследовать Полную Библиотеку →",
+    share_reading: "Поделись Своим Чтением",
+    copied: "✓ Скопировано",
+    primary_element_is: "Твой первичный элемент —",
+    with_strong: "с сильным",
+    influence: "влиянием",
+    reading_earth: "Ты укоренен — заземлен в том, что важно, стабилен, когда мир содрогается.",
+    reading_water: "Ты течешь глубоко — чувствуя, трансформируясь, неся течения, которые другие не видят.",
+    reading_fire: "Ты горишь — мужество, импульс, пламя, которое отказывается угасать.",
+    reading_air: "Ты стремишься — всегда глядя вверх, наружу, к тому, что могло бы быть.",
+    combo_earth_water: "Укоренен, но текуч. Ты держишься за то, что важно, отпуская то, что тебе не служит.",
+    combo_earth_fire: "Прочен и свиреп. Ты защищаешь силой гор и жаром убеждения.",
+    combo_earth_air: "Заземлен, но расширяющийся. Твои корни уходят глубоко, но твое видение достигает далеко.",
+    combo_water_fire: "Глубина встречает импульс. Ты чувствуешь все и направляешь это в неустанное движение вперед.",
+    combo_water_air: "Интуитивен и свободен. Ты чувствуешь, что упускают другие, и следуешь течениям, которые никто другой не может чувствовать.",
+    combo_fire_air: "Горящий ярко и достигающий высоко. Чистое честолюбие, смягченное видением и открытостью.",
+    // Library
+    reading_complete: "Чтение Завершено",
+    your_yant_library: "Твоя Библиотека Янтр",
+    design_library: "Библиотека Дизайнов",
+    in_collection: "в коллекции",
+    total_designs: "всего дизайнов",
+    my_journey: "Мой Путь",
+    view_collection: "Просмотреть Коллекцию",
+    start_over: "Начать Заново",
+    for_you: "Для Тебя",
+    all_n_designs: "Все Дизайны",
+    cat_all: "Все Дизайны", cat_geometric: "Геометрические", cat_animal: "Духи Животных", cat_deity: "Божества", cat_nature: "Природа",
+    click_to_learn: "Нажми на любой дизайн для подробностей · Используй + Добавить, чтобы построить свою коллекцию",
+    in_collection_btn: "✓ В Коллекции", add_btn: "+ Добавить",
+    // Modal
+    placement_label: "Размещение", energy_label: "Энергия", visibility_label: "Видимость", size_label: "Размер",
+    vis_hidden: "Легко скрыть", vis_semi: "Полускрыто", vis_visible: "Видно",
+    design_word: "дизайн", collage_note: "Заметка о Коллаже",
+    see_photos: "Посмотреть Реальные Фото Татуировок →",
+    mark_journey: "Отметь Свой Путь",
+    journey_have: "✓ У Меня Есть", journey_next: "Следующая", journey_someday: "Когда-нибудь",
+    remove_collection: "Удалить из Коллекции", add_to_collection: "Добавить в Коллекцию",
+    // Collage
+    your_sacred_collection: "Твоя Священная Коллекция",
+    yants_selected: "Янтры Выбраны",
+    no_designs_yet: "Пока нет выбранных дизайнов. Вернись и выбери свои янтры.",
+    placement_collage_notes: "Заметки о Размещении и Коллаже",
+    the_next_step: "Следующий Шаг",
+    bring_to_master: "Принеси Это Чтение к Мастеру",
+    next_step_desc: "Твое проявление завершено — но янтра не твоя, пока ее не даст квалифицированный аджарн или монах. Поделись своим чтением, обсуди свои выборы и получи благословение с уважением и намерением.",
+    copy_consultation: "Скопировать Запрос Консультации", share_collection: "Поделиться Коллекцией",
+    sacred_not_decorative: "Сак янтры священны — не декоративны.",
+    seek_legitimate: "Найди легитимного монаха или мастера аджарна в Таиланде.",
+    approach_humility: "Подходи с смирением, приношениями и искренним намерением.",
+    meanings_vary: "Значения различаются в зависимости от линии, аджарна и храма.",
+    app_guides: "Это приложение направляет — не объявляет абсолютную истину.",
+    remove_btn: "Удалить", view_details: "Посмотреть Детали", back_to_library: "← Вернуться к Библиотеке",
+    // Journey
+    my_sacred_journey: "Мой Священный Путь",
+    your_sak_yant_plan: "Твой План Сак Янтра",
+    received_word: "получено", planned_word: "запланировано", someday_word: "когда-нибудь",
+    library_btn: "← Библиотека", collection_btn: "Коллекция",
+    filter_all: "Все", filter_received: "Получено ✓", filter_next: "Следующая", filter_someday: "Когда-нибудь",
+    journey_empty: "Твой путь начинается здесь. Исследуй библиотеку и отмечай янтры, которые у тебя есть, которые ты хочешь дальше, или о которых мечтаешь.",
+    browse_library: "Исследовать Библиотеку",
+    have_it: "✓ Имею", next_btn: "Следующая", someday_btn: "Когда-нибудь",
+    add_note: "+ Добавь личную заметку",
+    note_placeholder: "Добавь личную заметку — когда ты ее получил, кто ее тебе дал, как это чувствовалось...",
+    note_save_hint: "Нажми Enter для сохранения · Shift+Enter для новой строки",
+    journey_summary: "Резюме Пути",
+    stat_received: "Получено", stat_getting_next: "Следующая", stat_someday: "Когда-нибудь", stat_total: "Всего Запланировано",
+    language: "Язык",
+  }
+
+}
+
+const LANGUAGES = [
+  {code:"en",label:"English",flag:"🇬🇧"},
+  {code:"th",label:"ไทย",flag:"🇹🇭"},
+  {code:"ja",label:"日本語",flag:"🇯🇵"},
+  {code:"zh",label:"中文",flag:"🇨🇳"},
+  {code:"ko",label:"한국어",flag:"🇰🇷"},
+  {code:"de",label:"Deutsch",flag:"🇩🇪"},
+  {code:"fr",label:"Français",flag:"🇫🇷"},
+  {code:"es",label:"Español",flag:"🇪🇸"},
+  {code:"pt",label:"Português",flag:"🇧🇷"},
+  {code:"ru",label:"Русский",flag:"🇷🇺"},
+];
+
+// t() is a live function — reads current language at call time
+const t = (key) => TRANSLATIONS[window.__sakyant_lang__ || "en"]?.[key] || TRANSLATIONS.en[key] || key;
 
 const ELEMENTS = {
-  earth: { name: "Earth", thai: "ดิน", symbol: "◆", color: "#8B7355", desc: "Foundation · Roots · What you protect" },
-  water: { name: "Water", thai: "น้ำ", symbol: "◎", color: "#5B7B8A", desc: "Depth · Intuition · What flows through you" },
-  fire:  { name: "Fire",  thai: "ไฟ", symbol: "△", color: "#A0522D", desc: "Drive · Courage · What burns in you" },
-  air:   { name: "Air",   thai: "ลม", symbol: "○", color: "#8A8A6E", desc: "Vision · Freedom · What you reach toward" },
+  earth: { symbol: "◆", color: "#8B7355" },
+  water: { symbol: "◎", color: "#5B7B8A" },
+  fire:  { symbol: "△", color: "#A0522D" },
+  air:   { symbol: "○", color: "#8A8A6E" },
 };
+// Helper to get translated element name/desc/thai
+const elName = (key) => t("elem_"+key);
+const elThai = (key) => ({earth:"ดิน",water:"น้ำ",fire:"ไฟ",air:"ลม"}[key]);
+const elDesc = (key) => t("elem_"+key+"_desc");
 
 const OFFERINGS = [
-  { id: "protection", label: "Protection", thai: "ป้องกัน", icon: "◇", traits: ["protection", "foundation", "resilience", "warrior"] },
-  { id: "luck", label: "Good Fortune", thai: "โชคดี", icon: "✦", traits: ["luck", "abundance", "manifestation", "optimism"] },
-  { id: "courage", label: "Courage", thai: "กล้าหาญ", icon: "△", traits: ["courage", "strength", "warrior", "authority"] },
-  { id: "love", label: "Love & Charisma", thai: "เมตตา", icon: "❋", traits: ["charisma", "love", "community", "communication"] },
-  { id: "wisdom", label: "Wisdom", thai: "ปัญญา", icon: "◎", traits: ["wisdom", "spirituality", "tradition", "depth"] },
-  { id: "travel", label: "Safe Journeys", thai: "เดินทาง", icon: "✧", traits: ["travel", "freedom", "adaptability", "wandering"] },
-  { id: "discipline", label: "Discipline", thai: "วินัย", icon: "▪", traits: ["discipline", "balance", "foundation", "resilience"] },
-  { id: "rebirth", label: "Transformation", thai: "เกิดใหม่", icon: "◯", traits: ["transformation", "rebirth", "intuition", "depth"] },
-  { id: "success", label: "Success", thai: "สำเร็จ", icon: "◈", traits: ["ambition", "leadership", "manifestation", "abundance"] },
+  { id: "protection", tKey: "off_protection", thai: "ป้องกัน", icon: "◇", traits: ["protection", "foundation", "resilience", "warrior"] },
+  { id: "luck", tKey: "off_fortune", thai: "โชคดี", icon: "✦", traits: ["luck", "abundance", "manifestation", "optimism"] },
+  { id: "courage", tKey: "off_courage", thai: "กล้าหาญ", icon: "△", traits: ["courage", "strength", "warrior", "authority"] },
+  { id: "love", tKey: "off_love", thai: "เมตตา", icon: "❋", traits: ["charisma", "love", "community", "communication"] },
+  { id: "wisdom", tKey: "off_wisdom", thai: "ปัญญา", icon: "◎", traits: ["wisdom", "spirituality", "tradition", "depth"] },
+  { id: "travel", tKey: "off_travel", thai: "เดินทาง", icon: "✧", traits: ["travel", "freedom", "adaptability", "wandering"] },
+  { id: "discipline", tKey: "off_discipline", thai: "วินัย", icon: "▪", traits: ["discipline", "balance", "foundation", "resilience"] },
+  { id: "rebirth", tKey: "off_transformation", thai: "เกิดใหม่", icon: "◯", traits: ["transformation", "rebirth", "intuition", "depth"] },
+  { id: "success", tKey: "off_success", thai: "สำเร็จ", icon: "◈", traits: ["ambition", "leadership", "manifestation", "abundance"] },
 ];
 
 const BODY_AREAS = [
-  { id: "upper_back", label: "Upper Back", y: 18, x: 50, side: "back" },
-  { id: "center_back", label: "Center Back", y: 38, x: 50, side: "back" },
-  { id: "neck_spine", label: "Neck / Spine", y: 8, x: 50, side: "back" },
-  { id: "shoulder", label: "Shoulder", y: 16, x: 28, side: "back" },
-  { id: "chest", label: "Chest", y: 22, x: 50, side: "front" },
-  { id: "upper_arm", label: "Upper Arm", y: 30, x: 18, side: "front" },
-  { id: "forearm", label: "Forearm", y: 48, x: 14, side: "front" },
-  { id: "thigh", label: "Thigh", y: 58, x: 35, side: "front" },
-  { id: "calf", label: "Calf", y: 76, x: 36, side: "front" },
+  { id: "upper_back", tKey: "area_upper_back", y: 18, x: 50, side: "back" },
+  { id: "center_back", tKey: "area_center_back", y: 38, x: 50, side: "back" },
+  { id: "neck_spine", tKey: "area_neck_spine", y: 8, x: 50, side: "back" },
+  { id: "shoulder", tKey: "area_shoulder", y: 16, x: 28, side: "back" },
+  { id: "chest", tKey: "area_chest", y: 22, x: 50, side: "front" },
+  { id: "upper_arm", tKey: "area_upper_arm", y: 30, x: 18, side: "front" },
+  { id: "forearm", tKey: "area_forearm", y: 48, x: 14, side: "front" },
+  { id: "thigh", tKey: "area_thigh", y: 58, x: 35, side: "front" },
+  { id: "calf", tKey: "area_calf", y: 76, x: 36, side: "front" },
 ];
 
 // Storage utilities for persistence
@@ -483,108 +2078,108 @@ const YANTS = {
   },
 };
 
-const QUESTIONS = [
+function getQuestions() { return [
   {
     id: "path", element: null, type: "single",
-    question: "How do you want to walk this path?",
-    sub: "This shapes the guidance you'll receive.",
+    question: t("q_path"),
+    sub: t("q_path_sub"),
     options: [
-      { label: "I seek a design that follows the ancestral lineage — traditional placement, traditional meaning", value: "traditional", traits: ["tradition", "spirituality", "foundation", "wisdom"] },
-      { label: "I seek a design that serves as a personal symbolic anchor — meaning matters, but on my terms", value: "personal", traits: ["independence", "adaptability", "freedom"] },
-      { label: "I'm still learning — guide me and I'll listen", value: "learning", traits: ["curiosity", "wisdom", "balance"] },
+      { label: t("q_path_opt1"), value: "traditional", traits: ["tradition", "spirituality", "foundation", "wisdom"] },
+      { label: t("q_path_opt2"), value: "personal", traits: ["independence", "adaptability", "freedom"] },
+      { label: t("q_path_opt3"), value: "learning", traits: ["curiosity", "wisdom", "balance"] },
     ]
   },
   {
     id: "earth", element: "earth", type: "single",
-    question: "What is the ground beneath your feet?",
-    sub: "Earth asks: what do you stand on?",
+    question: t("q_earth"),
+    sub: t("q_earth_sub"),
     options: [
-      { label: "My people — the ones I'd do anything for", value: "earth_people", element: "earth", traits: ["loyalty", "community", "devotion", "foundation"] },
-      { label: "My own two hands — what I've built and what I've survived", value: "earth_self", element: "earth", traits: ["resilience", "independence", "strength", "discipline"] },
-      { label: "Something ancient — tradition, lineage, roots that go deeper than me", value: "earth_roots", element: "earth", traits: ["tradition", "wisdom", "foundation", "spirituality"] },
-      { label: "Honestly? I'm still building it", value: "earth_building", element: "earth", traits: ["transformation", "adaptability", "courage", "rebirth"] },
+      { label: t("q_earth_opt1"), value: "earth_people", element: "earth", traits: ["loyalty", "community", "devotion", "foundation"] },
+      { label: t("q_earth_opt2"), value: "earth_self", element: "earth", traits: ["resilience", "independence", "strength", "discipline"] },
+      { label: t("q_earth_opt3"), value: "earth_roots", element: "earth", traits: ["tradition", "wisdom", "foundation", "spirituality"] },
+      { label: t("q_earth_opt4"), value: "earth_building", element: "earth", traits: ["transformation", "adaptability", "courage", "rebirth"] },
     ]
   },
   {
     id: "water", element: "water", type: "single",
-    question: "What runs beneath your surface?",
-    sub: "Water asks: what do you carry that others don't see?",
+    question: t("q_water"),
+    sub: t("q_water_sub"),
     options: [
-      { label: "A deep intuition — I feel things before they happen", value: "water_intuition", element: "water", traits: ["intuition", "mystery", "depth", "wisdom"] },
-      { label: "Old pain I'm learning to release", value: "water_release", element: "water", traits: ["transformation", "rebirth", "resilience", "adaptability"] },
-      { label: "A quiet love that runs deeper than I show", value: "water_love", element: "water", traits: ["devotion", "loyalty", "love", "community"] },
-      { label: "Restlessness — a current pulling me somewhere new", value: "water_restless", element: "water", traits: ["travel", "freedom", "wandering", "curiosity"] },
+      { label: t("q_water_opt1"), value: "water_intuition", element: "water", traits: ["intuition", "mystery", "depth", "wisdom"] },
+      { label: t("q_water_opt2"), value: "water_release", element: "water", traits: ["transformation", "rebirth", "resilience", "adaptability"] },
+      { label: t("q_water_opt3"), value: "water_love", element: "water", traits: ["devotion", "loyalty", "love", "community"] },
+      { label: t("q_water_opt4"), value: "water_restless", element: "water", traits: ["travel", "freedom", "wandering", "curiosity"] },
     ]
   },
   {
     id: "fire", element: "fire", type: "single",
-    question: "What would you walk through fire for?",
-    sub: "Fire asks: what makes you dangerous — in the best way?",
+    question: t("q_fire"),
+    sub: t("q_fire_sub"),
     options: [
-      { label: "The people I love — without hesitation", value: "fire_protect", element: "fire", traits: ["loyalty", "devotion", "strength", "warrior"] },
-      { label: "My own freedom — I refuse to be caged", value: "fire_freedom", element: "fire", traits: ["freedom", "independence", "courage", "authority"] },
-      { label: "Something I haven't built yet — a vision only I can see", value: "fire_vision", element: "fire", traits: ["ambition", "leadership", "manifestation", "creativity"] },
-      { label: "What's right — I fight for justice even when it costs me", value: "fire_justice", element: "fire", traits: ["courage", "warrior", "protection", "discipline"] },
+      { label: t("q_fire_opt1"), value: "fire_protect", element: "fire", traits: ["loyalty", "devotion", "strength", "warrior"] },
+      { label: t("q_fire_opt2"), value: "fire_freedom", element: "fire", traits: ["freedom", "independence", "courage", "authority"] },
+      { label: t("q_fire_opt3"), value: "fire_vision", element: "fire", traits: ["ambition", "leadership", "manifestation", "creativity"] },
+      { label: t("q_fire_opt4"), value: "fire_justice", element: "fire", traits: ["courage", "warrior", "protection", "discipline"] },
     ]
   },
   {
     id: "air", element: "air", type: "single",
-    question: "Close your eyes. What do you see?",
-    sub: "Air asks: what are you reaching toward?",
+    question: t("q_air"),
+    sub: t("q_air_sub"),
     options: [
-      { label: "Stillness — peace after everything I've been through", value: "air_peace", element: "air", traits: ["balance", "spirituality", "wisdom", "tradition"] },
-      { label: "Abundance — I want life to overflow with good things", value: "air_abundance", element: "air", traits: ["abundance", "luck", "manifestation", "joy", "optimism"] },
-      { label: "Connection — being truly seen and deeply known", value: "air_connection", element: "air", traits: ["charisma", "love", "community", "communication"] },
-      { label: "The unknown — somewhere I haven't been yet", value: "air_unknown", element: "air", traits: ["travel", "freedom", "curiosity", "adaptability"] },
+      { label: t("q_air_opt1"), value: "air_peace", element: "air", traits: ["balance", "spirituality", "wisdom", "tradition"] },
+      { label: t("q_air_opt2"), value: "air_abundance", element: "air", traits: ["abundance", "luck", "manifestation", "joy", "optimism"] },
+      { label: t("q_air_opt3"), value: "air_connection", element: "air", traits: ["charisma", "love", "community", "communication"] },
+      { label: t("q_air_opt4"), value: "air_unknown", element: "air", traits: ["travel", "freedom", "curiosity", "adaptability"] },
     ]
   },
   {
     id: "offerings", element: null, type: "multi",
-    question: "Place your offerings on the table.",
-    sub: "Choose 2 or 3 intentions you want your yant to carry.",
+    question: t("q_offerings"),
+    sub: t("q_offerings_sub"),
     maxSelect: 3,
     minSelect: 2,
     options: null,
   },
   {
     id: "balance", element: null, type: "single",
-    question: "Which element do you need more of?",
-    sub: "Not what you are — what's missing. The yant fills the gap.",
+    question: t("q_balance"),
+    sub: t("q_balance_sub"),
     options: [
-      { label: "Earth — I need grounding, roots, something solid beneath me", value: "need_earth", element: "earth", traits: ["foundation", "protection", "balance", "tradition", "discipline"] },
-      { label: "Water — I need to feel again, to release, to transform", value: "need_water", element: "water", traits: ["transformation", "intuition", "depth", "rebirth", "adaptability"] },
-      { label: "Fire — I need courage, power, the will to finally act", value: "need_fire", element: "fire", traits: ["strength", "courage", "warrior", "authority", "ambition"] },
-      { label: "Air — I need lightness, vision, room to breathe", value: "need_air", element: "air", traits: ["freedom", "joy", "abundance", "spirituality", "curiosity"] },
+      { label: t("q_balance_opt1"), value: "need_earth", element: "earth", traits: ["foundation", "protection", "balance", "tradition", "discipline"] },
+      { label: t("q_balance_opt2"), value: "need_water", element: "water", traits: ["transformation", "intuition", "depth", "rebirth", "adaptability"] },
+      { label: t("q_balance_opt3"), value: "need_fire", element: "fire", traits: ["strength", "courage", "warrior", "authority", "ambition"] },
+      { label: t("q_balance_opt4"), value: "need_air", element: "air", traits: ["freedom", "joy", "abundance", "spirituality", "curiosity"] },
     ]
   },
   {
     id: "placement", element: null, type: "areas",
-    question: "Where on your body do you feel this belongs?",
-    sub: "Tap the areas you're open to. You can select multiple.",
+    question: t("q_placement"),
+    sub: t("q_placement_sub"),
     options: null,
   },
   {
     id: "discretion", element: null, type: "single",
-    question: "Does this need to stay between you and the ink?",
-    sub: "No judgment — practical needs shape the right choice.",
+    question: t("q_discretion"),
+    sub: t("q_discretion_sub"),
     options: [
-      { label: "Yes — it should be easy to conceal", value: "hidden", traits: [] },
-      { label: "I don't mind it showing sometimes", value: "semi", traits: [] },
-      { label: "I want it visible — this is part of who I am", value: "visible", traits: [] },
+      { label: t("q_discretion_opt1"), value: "hidden", traits: [] },
+      { label: t("q_discretion_opt2"), value: "semi", traits: [] },
+      { label: t("q_discretion_opt3"), value: "visible", traits: [] },
     ]
   },
   {
     id: "collage", element: null, type: "single",
-    question: "One yant, or many?",
-    sub: "Many people build a sacred body map over years.",
+    question: t("q_collage"),
+    sub: t("q_collage_sub"),
     options: [
-      { label: "One perfect yant — singular and meaningful", value: "one", traits: ["tradition", "completeness"] },
-      { label: "A foundation piece to start my collection", value: "start", traits: ["foundation", "balance"] },
-      { label: "I want a full collage — I'm thinking big", value: "collage", traits: ["completeness", "ambition", "wisdom"] },
-      { label: "Not sure yet — show me what resonates", value: "open", traits: [] },
+      { label: t("q_collage_opt1"), value: "one", traits: ["tradition", "completeness"] },
+      { label: t("q_collage_opt2"), value: "start", traits: ["foundation", "balance"] },
+      { label: t("q_collage_opt3"), value: "collage", traits: ["completeness", "ambition", "wisdom"] },
+      { label: t("q_collage_opt4"), value: "open", traits: [] },
     ]
   },
-];
+]; }
 
 function scoreYants(answers, selectedAreas, discretion) {
   const traitScores = {};
@@ -643,7 +2238,7 @@ function getElementProfile(answers) {
 
 const G = "#C9A84C", DARK = "#0D0B07", DEEP = "#121008", WARM = "#F0E8D0", DIM = "#7A6D52", MID = "#9A8D6E", SUB = "#221E14";
 const CATS = ["all","geometric","animal","deity","nature"];
-const CAT_L = { all:"All Designs", geometric:"Geometric", animal:"Animal Spirits", deity:"Deities", nature:"Nature" };
+// CAT_L is computed inside App component via useMemo
 
 function Btn({ children, primary, small, onClick, disabled }) {
   const [h, setH] = useState(false);
@@ -703,7 +2298,7 @@ function YantCard({ yantKey, yant, selected, onSelect, onToggle, rank }) {
         <div style={{ fontSize:9, color:DIM, textAlign:"center", letterSpacing:0.3, lineHeight:1.4 }}>{yant.meaning}</div>
         {yant.element && ELEMENTS[yant.element] && (
           <div style={{ fontSize:8, letterSpacing:2, color:ELEMENTS[yant.element].color, textTransform:"uppercase" }}>
-            {ELEMENTS[yant.element].symbol} {ELEMENTS[yant.element].name}
+            {ELEMENTS[yant.element].symbol} {elName(yant.element)}
           </div>
         )}
       </div>
@@ -717,7 +2312,7 @@ function YantCard({ yantKey, yant, selected, onSelect, onToggle, rank }) {
         onMouseEnter={e=>{ if(!selected){e.currentTarget.style.background="rgba(255,255,255,0.03)"; e.currentTarget.style.color=MID;}}}
         onMouseLeave={e=>{ if(!selected){e.currentTarget.style.background="transparent"; e.currentTarget.style.color=DIM;}}}
       >
-        {selected ? "✓ In Collection" : "+ Add"}
+        {selected ? t("in_collection_btn") : t("add_btn")}
       </button>
     </div>
   );
@@ -740,14 +2335,14 @@ function Modal({ yantKey, yant, inCollage, onToggle, onClose, currentStatus, onS
         <p style={{ fontSize:14, lineHeight:1.85, color:MID, marginBottom:20 }}>{yant.description}</p>
         <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:16 }}>
           {yant.element && ELEMENTS[yant.element] && (
-            <span style={{ fontSize:9, letterSpacing:2, textTransform:"uppercase", border:`1px solid ${ELEMENTS[yant.element].color}`, color:ELEMENTS[yant.element].color, padding:"3px 8px" }}>{ELEMENTS[yant.element].symbol} {ELEMENTS[yant.element].name}</span>
+            <span style={{ fontSize:9, letterSpacing:2, textTransform:"uppercase", border:`1px solid ${ELEMENTS[yant.element].color}`, color:ELEMENTS[yant.element].color, padding:"3px 8px" }}>{ELEMENTS[yant.element].symbol} {elName(yant.element)}</span>
           )}
           {yant.traits.map(t=>(
             <span key={t} style={{ fontSize:9, letterSpacing:2, textTransform:"uppercase", border:`1px solid rgba(201,168,76,0.22)`, color:G, padding:"3px 8px" }}>{t}</span>
           ))}
         </div>
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:16 }}>
-          {[["Placement", yant.placement], ["Energy", yant.energy], ["Visibility", yant.visibility === "hidden" ? "Easy to conceal" : yant.visibility === "semi" ? "Semi-hidden" : "Visible"], ["Size", yant.size ? yant.size.charAt(0).toUpperCase() + yant.size.slice(1) + " design" : ""]].filter(([,v])=>v).map(([l,v])=>(
+          {[[t("placement_label"), yant.placement], [t("energy_label"), yant.energy], [t("visibility_label"), yant.visibility === "hidden" ? t("vis_hidden") : yant.visibility === "semi" ? t("vis_semi") : t("vis_visible")], [t("size_label"), yant.size ? yant.size.charAt(0).toUpperCase() + yant.size.slice(1) + " design" : ""]].filter(([,v])=>v).map(([l,v])=>(
             <div key={l} style={{ border:`1px solid ${SUB}`, padding:"12px 14px" }}>
               <div style={{ fontSize:9, letterSpacing:3, color:DIM, textTransform:"uppercase", marginBottom:5 }}>{l}</div>
               <div style={{ fontSize:12, color:WARM, textTransform:"capitalize" }}>{v}</div>
@@ -775,7 +2370,7 @@ function Modal({ yantKey, yant, inCollage, onToggle, onClose, currentStatus, onS
         <div style={{ marginBottom:12 }}>
           <div style={{ fontSize:9, letterSpacing:3, color:DIM, textTransform:"uppercase", marginBottom:8 }}>Mark Your Journey</div>
           <div style={{ display:"flex", gap:8 }}>
-            {[["have","✓ I Have This", "#4A7A5A"],["next","Getting Next", G],["someday","Someday", "#5B7B8A"]].map(([s, label, color]) => (
+            {[["have",t("journey_have"), "#4A7A5A"],["next",t("stat_getting_next"), G],[t("someday_word"),t("stat_someday"), "#5B7B8A"]].map(([s, label, color]) => (
               <button key={s} onClick={()=>{ onSetStatus(yantKey, s); }} style={{
                 flex:1, background: currentStatus===s ? (color+"22") : "transparent",
                 border:`1px solid ${currentStatus===s ? color : SUB}`,
@@ -791,13 +2386,23 @@ function Modal({ yantKey, yant, inCollage, onToggle, onClose, currentStatus, onS
           width:"100%", background: inCollage?"transparent":G, border:`1px solid ${G}`,
           color: inCollage?G:DARK, padding:"13px", fontSize:11, letterSpacing:3,
           textTransform:"uppercase", cursor:"pointer", fontFamily:"Georgia,serif",
-        }}>{inCollage ? "Remove from Collection" : "Add to Collection"}</button>
+        }}>{inCollage ? t("remove_collection") : t("add_to_collection")}</button>
       </div>
     </div>
   );
 }
 
+
 export default function App() {
+  const [lang, setLang] = useState(() => { try { return localStorage.getItem("sakyant_lang") || "en"; } catch(e) { return "en"; } });
+  const [showLang, setShowLang] = useState(false);
+  // Set language synchronously so t() works during this render
+  window.__sakyant_lang__ = lang;
+  useEffect(() => { try { localStorage.setItem("sakyant_lang", lang); } catch(e) {} }, [lang]);
+  // Re-compute translated data when language changes
+  const QUESTIONS = useMemo(() => getQuestions(), [lang]);
+  const CAT_L = useMemo(() => ({ all: t("cat_all"), geometric: t("cat_geometric"), animal: t("cat_animal"), deity: t("cat_deity"), nature: t("cat_nature") }), [lang]);
+
   const [phase, setPhase] = useState("intro");
   const [currentQ, setCurrentQ] = useState(0);
   const [answers, setAnswers] = useState([]);
@@ -814,9 +2419,9 @@ export default function App() {
   const [bodyAreas, setBodyAreas] = useState([]);
   const [discretion, setDiscretion] = useState(null);
   const [pathChoice, setPathChoice] = useState(null);
-  const [journey, setJourney] = useState({}); // { yantKey: "have" | "next" | "someday" }
+  const [journey, setJourney] = useState({}); // { yantKey: "have" | "next" | t("someday_word") }
   const [journeyNotes, setJourneyNotes] = useState({}); // { yantKey: "note text" }
-  const [journeyFilter, setJourneyFilter] = useState("all"); // "all" | "have" | "next" | "someday"
+  const [journeyFilter, setJourneyFilter] = useState("all"); // "all" | "have" | "next" | t("someday_word")
   const [editingNote, setEditingNote] = useState(null); // yantKey being edited
 
   useEffect(() => { setTimeout(()=>setLoaded(true),80); },[]);
@@ -903,6 +2508,29 @@ export default function App() {
       <div style={{ position:"fixed", inset:0, pointerEvents:"none", zIndex:0, background:`radial-gradient(ellipse at 15% 15%, rgba(201,168,76,0.05) 0%, transparent 55%), radial-gradient(ellipse at 85% 85%, rgba(201,168,76,0.04) 0%, transparent 55%), repeating-linear-gradient(0deg,transparent,transparent 50px,rgba(201,168,76,0.01) 50px,rgba(201,168,76,0.01) 51px), repeating-linear-gradient(90deg,transparent,transparent 50px,rgba(201,168,76,0.01) 50px,rgba(201,168,76,0.01) 51px)` }} />
 
       <div style={{ position:"relative", zIndex:1, maxWidth:920, margin:"0 auto", padding:"0 20px", opacity:loaded?1:0, transition:"opacity 0.8s ease" }}>
+      {/* Language Selector */}
+      <div style={{ position:"fixed", top:16, right:16, zIndex:100 }}>
+        <button onClick={()=>setShowLang(!showLang)} style={{
+          background:DEEP, border:`1px solid ${SUB}`, color:DIM, padding:"6px 12px",
+          fontSize:11, cursor:"pointer", fontFamily:"Georgia,serif", display:"flex", alignItems:"center", gap:6,
+        }}>
+          {LANGUAGES.find(l=>l.code===lang)?.flag} {lang.toUpperCase()}
+        </button>
+        {showLang && (
+          <div style={{ position:"absolute", top:"100%", right:0, marginTop:4, background:DEEP, border:`1px solid ${SUB}`, zIndex:101, minWidth:140 }}>
+            {LANGUAGES.map(l => (
+              <button key={l.code} onClick={()=>{setLang(l.code);setShowLang(false);}} style={{
+                display:"block", width:"100%", background:lang===l.code?"rgba(201,168,76,0.1)":"transparent",
+                border:"none", borderBottom:`1px solid ${SUB}`, color:lang===l.code?G:DIM,
+                padding:"8px 12px", fontSize:11, cursor:"pointer", fontFamily:"Georgia,serif",
+                textAlign:"left",
+              }}>
+                {l.flag} {l.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
         {/* INTRO */}
         {phase==="intro" && (
@@ -947,7 +2575,7 @@ export default function App() {
                   {ELEMENTS[QUESTIONS[currentQ].element].symbol}
                 </span>
                 <span style={{ fontSize:10, letterSpacing:4, color:ELEMENTS[QUESTIONS[currentQ].element].color, textTransform:"uppercase" }}>
-                  {ELEMENTS[QUESTIONS[currentQ].element].name} · {ELEMENTS[QUESTIONS[currentQ].element].thai}
+                  {elName(QUESTIONS[currentQ].element)} · {elThai(QUESTIONS[currentQ].element)}
                 </span>
               </div>
             )}
@@ -1005,7 +2633,7 @@ export default function App() {
                         onMouseLeave={e => { if (!isSel && !atMax) { e.currentTarget.style.borderColor = SUB; e.currentTarget.style.color = DIM; }}}
                       >
                         <div style={{ fontSize: 24, opacity: isSel ? 1 : 0.5, transition: "opacity 0.2s ease" }}>{o.icon}</div>
-                        <div style={{ fontSize: 11, letterSpacing: 1 }}>{o.label}</div>
+                        <div style={{ fontSize: 11, letterSpacing: 1 }}>{t(o.tKey)}</div>
                         <div style={{ fontSize: 10, letterSpacing: 2, opacity: 0.5 }}>{o.thai}</div>
                       </button>
                     );
@@ -1041,7 +2669,7 @@ export default function App() {
                         onMouseLeave={e => { if (!isSel) { e.currentTarget.style.borderColor = SUB; e.currentTarget.style.color = DIM; }}}
                       >
                         {isSel && <span style={{ marginRight: 6 }}>✓</span>}
-                        {area.label}
+                        {t(area.tKey)}
                       </button>
                     );
                   })}
@@ -1058,7 +2686,7 @@ export default function App() {
                 QUESTIONS[currentQ].type === "areas" ? bodyAreas.length === 0 :
                 !selected
               }>
-                {currentQ===QUESTIONS.length-1 ? "Reveal My Yants" : "Continue →"}
+                {currentQ===QUESTIONS.length-1 ? t("reveal_yants") : t("continue_btn")}
               </Btn>
             </div>
           </div>
@@ -1074,22 +2702,22 @@ export default function App() {
               {/* Air - top */}
               <div style={{ position:"absolute", top:0, left:"50%", transform:"translateX(-50%)", textAlign:"center" }}>
                 <div style={{ fontSize:24, color:ELEMENTS.air.color, opacity:0.3 + elementProfile.air * 0.7, transition:"opacity 0.6s ease" }}>{ELEMENTS.air.symbol}</div>
-                <div style={{ fontSize:9, letterSpacing:2, color:elementProfile.air > 0.6 ? WARM : DIM, marginTop:2 }}>{ELEMENTS.air.thai}</div>
+                <div style={{ fontSize:9, letterSpacing:2, color:elementProfile.air > 0.6 ? WARM : DIM, marginTop:2 }}>{elThai("air")}</div>
               </div>
               {/* Fire - right */}
               <div style={{ position:"absolute", top:"50%", right:0, transform:"translateY(-50%)", textAlign:"center" }}>
                 <div style={{ fontSize:24, color:ELEMENTS.fire.color, opacity:0.3 + elementProfile.fire * 0.7, transition:"opacity 0.6s ease" }}>{ELEMENTS.fire.symbol}</div>
-                <div style={{ fontSize:9, letterSpacing:2, color:elementProfile.fire > 0.6 ? WARM : DIM, marginTop:2 }}>{ELEMENTS.fire.thai}</div>
+                <div style={{ fontSize:9, letterSpacing:2, color:elementProfile.fire > 0.6 ? WARM : DIM, marginTop:2 }}>{elThai("fire")}</div>
               </div>
               {/* Earth - bottom */}
               <div style={{ position:"absolute", bottom:0, left:"50%", transform:"translateX(-50%)", textAlign:"center" }}>
                 <div style={{ fontSize:24, color:ELEMENTS.earth.color, opacity:0.3 + elementProfile.earth * 0.7, transition:"opacity 0.6s ease" }}>{ELEMENTS.earth.symbol}</div>
-                <div style={{ fontSize:9, letterSpacing:2, color:elementProfile.earth > 0.6 ? WARM : DIM, marginTop:2 }}>{ELEMENTS.earth.thai}</div>
+                <div style={{ fontSize:9, letterSpacing:2, color:elementProfile.earth > 0.6 ? WARM : DIM, marginTop:2 }}>{elThai("earth")}</div>
               </div>
               {/* Water - left */}
               <div style={{ position:"absolute", top:"50%", left:0, transform:"translateY(-50%)", textAlign:"center" }}>
                 <div style={{ fontSize:24, color:ELEMENTS.water.color, opacity:0.3 + elementProfile.water * 0.7, transition:"opacity 0.6s ease" }}>{ELEMENTS.water.symbol}</div>
-                <div style={{ fontSize:9, letterSpacing:2, color:elementProfile.water > 0.6 ? WARM : DIM, marginTop:2 }}>{ELEMENTS.water.thai}</div>
+                <div style={{ fontSize:9, letterSpacing:2, color:elementProfile.water > 0.6 ? WARM : DIM, marginTop:2 }}>{elThai("water")}</div>
               </div>
               {/* Connecting lines */}
               <svg viewBox="0 0 220 220" style={{ position:"absolute", inset:0 }}>
@@ -1105,7 +2733,7 @@ export default function App() {
             <div style={{ display:"flex", flexDirection:"column", gap:10, maxWidth:340, margin:"0 auto 36px" }}>
               {Object.entries(ELEMENTS).map(([key, el]) => (
                 <div key={key} style={{ display:"flex", alignItems:"center", gap:12 }}>
-                  <div style={{ fontSize:10, letterSpacing:2, color:el.color, width:52, textAlign:"right" }}>{el.name}</div>
+                  <div style={{ fontSize:10, letterSpacing:2, color:el.color, width:52, textAlign:"right" }}>{elName(key)}</div>
                   <div style={{ flex:1, height:3, background:SUB, position:"relative" }}>
                     <div style={{ position:"absolute", left:0, top:0, height:"100%", width:`${(elementProfile[key]||0)*100}%`, background:el.color, transition:"width 0.8s ease" }} />
                   </div>
@@ -1120,24 +2748,24 @@ export default function App() {
               const primary = sorted[0][0];
               const secondary = sorted[1][0];
               const readings = {
-                earth: "You are rooted — grounded in what matters, steady when the world shakes.",
-                water: "You run deep — feeling, transforming, carrying currents others can't see.",
-                fire: "You burn — courage, drive, a flame that refuses to go out.",
-                air: "You reach — always looking upward, outward, toward what could be.",
+                earth: t("reading_earth"),
+                water: t("reading_water"),
+                fire: t("reading_fire"),
+                air: t("reading_air"),
               };
               const combos = {
-                earth_water: "Rooted but flowing. You hold fast to what matters while letting go of what doesn't serve you.",
-                earth_fire: "Solid and fierce. You protect with the strength of mountains and the heat of conviction.",
-                earth_air: "Grounded yet expansive. Your roots go deep but your vision reaches far.",
-                water_fire: "Depth meets drive. You feel everything and channel it into unstoppable forward motion.",
-                water_air: "Intuitive and free. You sense what others miss and follow currents no one else can feel.",
-                fire_air: "Burning bright and reaching high. Pure ambition tempered by vision and openness.",
+                earth_water: t("combo_earth_water"),
+                earth_fire: t("combo_earth_fire"),
+                earth_air: t("combo_earth_air"),
+                water_fire: t("combo_water_fire"),
+                water_air: t("combo_water_air"),
+                fire_air: t("combo_fire_air"),
               };
               const comboKey = [primary, secondary].sort().join("_");
               return (
                 <div style={{ marginBottom:40 }}>
                   <p style={{ fontSize:15, lineHeight:1.85, color:MID, marginBottom:12 }}>
-                    Your primary element is <span style={{ color:ELEMENTS[primary].color, fontStyle:"italic" }}>{ELEMENTS[primary].name} ({ELEMENTS[primary].thai})</span> with strong <span style={{ color:ELEMENTS[secondary].color, fontStyle:"italic" }}>{ELEMENTS[secondary].name} ({ELEMENTS[secondary].thai})</span> influence.
+                    Your primary element is <span style={{ color:ELEMENTS[primary].color, fontStyle:"italic" }}>{elName(primary)} ({elThai(primary)})</span> with strong <span style={{ color:ELEMENTS[secondary].color, fontStyle:"italic" }}>{elName(secondary)} ({elThai(secondary)})</span> influence.
                   </p>
                   <p style={{ fontSize:13, lineHeight:1.8, color:DIM, fontStyle:"italic" }}>
                     {combos[comboKey] || readings[primary]}
@@ -1171,7 +2799,7 @@ export default function App() {
                         <div style={{ fontSize:11, color:G, letterSpacing:1, marginBottom:6 }}>{r.yant.thai} · {r.yant.meaning}</div>
                         <div style={{ fontSize:11, color:DIM, lineHeight:1.7 }}>{r.yant.description.slice(0, 160)}...</div>
                         <div style={{ marginTop:8, display:"flex", gap:6, flexWrap:"wrap" }}>
-                          <span style={{ fontSize:8, letterSpacing:2, textTransform:"uppercase", color:ELEMENTS[r.yant.element]?.color || DIM }}>{ELEMENTS[r.yant.element]?.symbol} {ELEMENTS[r.yant.element]?.name}</span>
+                          <span style={{ fontSize:8, letterSpacing:2, textTransform:"uppercase", color:ELEMENTS[r.yant.element]?.color || DIM }}>{ELEMENTS[r.yant.element]?.symbol} {elName(r.yant.element)}</span>
                           <span style={{ fontSize:8, letterSpacing:1, color:DIM }}>· {r.yant.placement}</span>
                         </div>
                       </div>
@@ -1188,7 +2816,7 @@ export default function App() {
                 <div style={{ fontSize:9, letterSpacing:3, color:G, textTransform:"uppercase", marginBottom:8 }}>Your Offerings</div>
                 <div style={{ display:"flex", gap:10, justifyContent:"center", flexWrap:"wrap" }}>
                   {OFFERINGS.filter(o => offerings.has(o.id)).map(o => (
-                    <span key={o.id} style={{ fontSize:10, color:DIM, letterSpacing:1 }}>{o.icon} {o.label}</span>
+                    <span key={o.id} style={{ fontSize:10, color:DIM, letterSpacing:1 }}>{o.icon} {t(o.tKey)}</span>
                   ))}
                 </div>
               </div>
@@ -1203,8 +2831,8 @@ export default function App() {
                   const primary = sorted[0][0];
                   const secondary = sorted[1][0];
                   const top3 = ranked.slice(0,3).map((r,i) => `${i+1}. ${r.yant.name} (${r.yant.thai}) — ${r.yant.meaning}`).join("\n");
-                  const offeringsList = OFFERINGS.filter(o => offerings.has(o.id)).map(o => o.label).join(", ");
-                  const text = `✦ Sak Yant Oracle — My Manifestation ✦\n\nPrimary Element: ${ELEMENTS[primary].name} (${ELEMENTS[primary].thai})\nSecondary Element: ${ELEMENTS[secondary].name} (${ELEMENTS[secondary].thai})\n\nMy Offerings: ${offeringsList || "None selected"}\n\nTop Recommended Yants:\n${top3}\n\n— Generated at sakyantoracle.com`;
+                  const offeringsList = OFFERINGS.filter(o => offerings.has(o.id)).map(o => t(o.tKey)).join(", ");
+                  const text = `✦ Sak Yant Oracle — My Manifestation ✦\n\nPrimary Element: ${elName(primary)} (${elThai(primary)})\nSecondary Element: ${elName(secondary)} (${elThai(secondary)})\n\nMy Offerings: ${offeringsList || "None selected"}\n\nTop Recommended Yants:\n${top3}\n\n— Generated at sakyantoracle.com`;
                   navigator.clipboard.writeText(text).then(() => {
                     const btn = document.getElementById("share-btn");
                     if (btn) { btn.textContent = "✓ COPIED"; setTimeout(() => { btn.textContent = "SHARE YOUR READING"; }, 2000); }
@@ -1231,7 +2859,7 @@ export default function App() {
               <div>
                 {ranked.length>0 && <div style={{ fontSize:10, letterSpacing:5, color:G, marginBottom:6, textTransform:"uppercase" }}>Reading Complete</div>}
                 <h2 style={{ fontSize:20, fontWeight:"normal", color:WARM, margin:0, letterSpacing:1 }}>
-                  {ranked.length>0 ? "Your Yant Library" : "Design Library"}
+                  {ranked.length>0 ? t("your_yant_library") : t("design_library")}
                 </h2>
                 <div style={{ fontSize:11, color:DIM, marginTop:3 }}>{collage.size} in collection · {yantEntries.length} total designs</div>
               </div>
@@ -1251,7 +2879,7 @@ export default function App() {
                     color:tab===t?G:DIM, padding:"9px 18px", cursor:"pointer",
                     fontSize:10, letterSpacing:3, textTransform:"uppercase", fontFamily:"Georgia,serif",
                     marginBottom:-1, transition:"all 0.18s ease",
-                  }}>{t==="recommended" ? "For You" : `All ${yantEntries.length} Designs`}</button>
+                  }}>{t==="recommended" ? t("for_you") : `All ${yantEntries.length} Designs`}</button>
                 ))}
               </div>
             )}
@@ -1323,7 +2951,7 @@ export default function App() {
                         <div style={{ fontSize:11, color:DIM, textAlign:"center", lineHeight:1.5 }}>{yant.placement}</div>
                         <div style={{ display:"flex", gap:6, alignItems:"center" }}>
                           <div style={{ fontSize:9, letterSpacing:2, textTransform:"uppercase", border:`1px solid rgba(201,168,76,0.2)`, color:G, padding:"3px 10px" }}>{yant.energy}</div>
-                          {yant.element && ELEMENTS[yant.element] && <div style={{ fontSize:8, letterSpacing:1, color:ELEMENTS[yant.element].color }}>{ELEMENTS[yant.element].symbol} {ELEMENTS[yant.element].name}</div>}
+                          {yant.element && ELEMENTS[yant.element] && <div style={{ fontSize:8, letterSpacing:1, color:ELEMENTS[yant.element].color }}>{ELEMENTS[yant.element].symbol} {elName(yant.element)}</div>}
                         </div>
                         <div style={{ display:"flex", gap:6 }}>
                           <button onClick={(e)=>{e.stopPropagation(); toggleCollage(key);}} style={{ background:"none", border:`1px solid ${SUB}`, color:DIM, fontSize:9, letterSpacing:2, textTransform:"uppercase", padding:"5px 12px", cursor:"pointer", fontFamily:"Georgia,serif" }}>Remove</button>
@@ -1359,7 +2987,7 @@ export default function App() {
                       onClick={() => {
                         const yantNames = [...collage].map(k => YANTS[k]).filter(Boolean).map(y => `${y.name} (${y.thai})`).join(", ");
                         const sorted = elementProfile ? Object.entries(elementProfile).sort((a,b) => b[1] - a[1]) : [];
-                        const primaryEl = sorted.length > 0 ? ELEMENTS[sorted[0][0]]?.name : "";
+                        const primaryEl = sorted.length > 0 ? elName(sorted[0][0]) : "";
                         const text = `✦ Sak Yant Consultation Request ✦\n\nI've completed my Sak Yant Oracle reading and would like to discuss receiving the following designs:\n\nSelected Yants: ${yantNames}\n${primaryEl ? `Primary Element: ${primaryEl}` : ""}\n\nI approach with respect and sincere intent. I would like to learn more about receiving these yants in the traditional way.\n\n— Via Sak Yant Oracle`;
                         navigator.clipboard.writeText(text).then(() => {
                           const btn = document.getElementById("consult-btn");
@@ -1377,7 +3005,7 @@ export default function App() {
                       onClick={() => {
                         const yantNames = [...collage].map(k => YANTS[k]).filter(Boolean).map(y => `${y.name} (${y.thai})`).join(", ");
                         const sorted = elementProfile ? Object.entries(elementProfile).sort((a,b) => b[1] - a[1]) : [];
-                        const primaryEl = sorted.length > 0 ? `Primary Element: ${ELEMENTS[sorted[0][0]]?.name}` : "";
+                        const primaryEl = sorted.length > 0 ? `Primary Element: ${elName(sorted[0][0])}` : "";
                         const summary = [...collage].map(k => { const y = YANTS[k]; if (!y) return ""; return `• ${y.name} — ${y.meaning}\n  Placement: ${y.placement}\n  ${y.collageNote}`; }).join("\n\n");
                         const text = `✦ My Sak Yant Collection ✦\n\n${primaryEl}\n\n${summary}\n\n— Generated at sakyantoracle.com`;
                         navigator.clipboard.writeText(text).then(() => {
@@ -1419,7 +3047,7 @@ export default function App() {
                 <div style={{ fontSize:10, letterSpacing:5, color:G, marginBottom:6, textTransform:"uppercase" }}>✦ My Sacred Journey</div>
                 <h2 style={{ fontSize:20, fontWeight:"normal", color:WARM, margin:0, letterSpacing:1 }}>Your Sak Yant Plan</h2>
                 <div style={{ fontSize:11, color:DIM, marginTop:3 }}>
-                  {Object.values(journey).filter(v=>v==="have").length} received · {Object.values(journey).filter(v=>v==="next").length} planned · {Object.values(journey).filter(v=>v==="someday").length} someday
+                  {Object.values(journey).filter(v=>v==="have").length} received · {Object.values(journey).filter(v=>v==="next").length} planned · {Object.values(journey).filter(v=>v===t("someday_word")).length} someday
                 </div>
               </div>
               <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
@@ -1430,7 +3058,7 @@ export default function App() {
 
             {/* Journey Filters */}
             <div style={{ display:"flex", gap:8, marginBottom:22, flexWrap:"wrap" }}>
-              {[["all","All"], ["have","Received ✓"], ["next","Getting Next"], ["someday","Someday"]].map(([val, label])=>(
+              {[["all",t("filter_all")], ["have",t("filter_received")], ["next",t("stat_getting_next")], [t("someday_word"),t("stat_someday")]].map(([val, label])=>(
                 <button key={val} onClick={()=>setJourneyFilter(val)} style={{
                   background:journeyFilter===val?G:"transparent", border:`1px solid ${journeyFilter===val?G:SUB}`,
                   color:journeyFilter===val?DARK:DIM, padding:"5px 14px", fontSize:9, letterSpacing:2,
@@ -1457,7 +3085,7 @@ export default function App() {
                 const status = journey[key];
                 const note = journeyNotes[key] || "";
                 const statusColors = { have: "#4A7A5A", next: G, someday: "#5B7B8A" };
-                const statusLabels = { have: "Received", next: "Getting Next", someday: "Someday" };
+                const statusLabels = { have: t("stat_received"), next: t("stat_getting_next"), someday: t("stat_someday") };
                 return (
                   <div key={key} style={{
                     border:`1px solid ${status==="next"?G:SUB}`,
@@ -1485,7 +3113,7 @@ export default function App() {
                       {/* Traits & element */}
                       <div style={{ display:"flex", gap:5, flexWrap:"wrap", marginBottom:10 }}>
                         {yant.element && ELEMENTS[yant.element] && (
-                          <span style={{ fontSize:8, letterSpacing:2, textTransform:"uppercase", border:`1px solid ${ELEMENTS[yant.element].color}`, color:ELEMENTS[yant.element].color, padding:"2px 6px" }}>{ELEMENTS[yant.element].symbol} {ELEMENTS[yant.element].name}</span>
+                          <span style={{ fontSize:8, letterSpacing:2, textTransform:"uppercase", border:`1px solid ${ELEMENTS[yant.element].color}`, color:ELEMENTS[yant.element].color, padding:"2px 6px" }}>{ELEMENTS[yant.element].symbol} {elName(yant.element)}</span>
                         )}
                         {yant.traits.slice(0,4).map(t=>(
                           <span key={t} style={{ fontSize:8, letterSpacing:1, textTransform:"uppercase", border:`1px solid rgba(201,168,76,0.15)`, color:G, padding:"2px 6px", opacity:0.7 }}>{t}</span>
@@ -1494,14 +3122,14 @@ export default function App() {
 
                       {/* Status buttons */}
                       <div style={{ display:"flex", gap:6, marginBottom:8, flexWrap:"wrap" }}>
-                        {["have","next","someday"].map(s => (
+                        {["have","next",t("someday_word")].map(s => (
                           <button key={s} onClick={()=>setYantStatus(key, s)} style={{
                             background: status===s ? (statusColors[s]+"22") : "transparent",
                             border:`1px solid ${status===s ? statusColors[s] : SUB}`,
                             color: status===s ? statusColors[s] : DIM,
                             padding:"4px 10px", fontSize:8, letterSpacing:2, textTransform:"uppercase",
                             cursor:"pointer", fontFamily:"Georgia,serif", transition:"all 0.15s ease",
-                          }}>{s==="have"?"✓ Have It":s==="next"?"Next":s==="someday"?"Someday":s}</button>
+                          }}>{s==="have"?t("have_it"):s==="next"?t("next_btn"):s===t("someday_word")?t("stat_someday"):s}</button>
                         ))}
                       </div>
 
@@ -1513,7 +3141,7 @@ export default function App() {
                             defaultValue={note}
                             onBlur={(e) => { updateNote(key, e.target.value); setEditingNote(null); }}
                             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); updateNote(key, e.target.value); setEditingNote(null); }}}
-                            placeholder="Add a personal note — when you got it, who gave it, how it felt..."
+                            placeholder={t("note_placeholder")}
                             style={{
                               width:"100%", background:"rgba(255,255,255,0.03)", border:`1px solid ${SUB}`,
                               color:WARM, padding:"10px 12px", fontSize:12, lineHeight:1.6,
@@ -1521,7 +3149,7 @@ export default function App() {
                               outline:"none",
                             }}
                           />
-                          <div style={{ fontSize:9, color:DIM, marginTop:4, letterSpacing:1 }}>Press Enter to save · Shift+Enter for new line</div>
+                          <div style={{ fontSize:9, color:DIM, marginTop:4, letterSpacing:1 }}>{t("note_save_hint")}</div>
                         </div>
                       ) : (
                         <div onClick={()=>setEditingNote(key)} style={{ cursor:"pointer", marginTop:4 }}>
@@ -1544,10 +3172,10 @@ export default function App() {
                 <div style={{ fontSize:10, letterSpacing:4, color:G, textTransform:"uppercase", marginBottom:12 }}>✦ Journey Summary</div>
                 <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(140px, 1fr))", gap:10 }}>
                   {[
-                    ["Received", Object.values(journey).filter(v=>v==="have").length, "#4A7A5A"],
-                    ["Getting Next", Object.values(journey).filter(v=>v==="next").length, G],
-                    ["Someday", Object.values(journey).filter(v=>v==="someday").length, "#5B7B8A"],
-                    ["Total Planned", Object.keys(journey).length, WARM],
+                    [t("stat_received"), Object.values(journey).filter(v=>v==="have").length, "#4A7A5A"],
+                    [t("stat_getting_next"), Object.values(journey).filter(v=>v==="next").length, G],
+                    [t("stat_someday"), Object.values(journey).filter(v=>v===t("someday_word")).length, "#5B7B8A"],
+                    [t("stat_total"), Object.keys(journey).length, WARM],
                   ].map(([label, count, color]) => (
                     <div key={label} style={{ border:`1px solid ${SUB}`, padding:"12px" }}>
                       <div style={{ fontSize:20, color, marginBottom:2 }}>{count}</div>
